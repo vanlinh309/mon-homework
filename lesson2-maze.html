@@ -36,15 +36,13 @@
     }
     .tool-btn {
       min-width: 70px;
-      height: 52px;
-      border-radius: 14px;
       border: 3px solid #ddd;
-      background: #fff;
       font-family: var(--font-main);
       font-size: 1rem;
       cursor: pointer;
       touch-action: manipulation;
       transition: border-color 0.12s, background 0.12s, transform 0.1s;
+      padding: 3px 5px;
     }
     .tool-btn.active {
       border-color: var(--color-blue);
@@ -115,7 +113,7 @@
 <body>
 
 <div class="top-bar">
-  <button class="btn-home" onclick="location.href='index.html'">🏠 Home</button>
+  <button class="btn-home" onclick="location.href='index.html'">🏠</button>
   <h1>Maze Adventure 🐾</h1>
   <div class="star-bar">⭐ <span id="star-count">0</span></div>
 </div>
