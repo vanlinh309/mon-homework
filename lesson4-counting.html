@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
   <title>Count It Up! 🍎</title>
   <link rel="stylesheet" href="style.css">
+  <script src="sounds.js"></script>
   <style>
     body { background: linear-gradient(135deg, #FFF9F0, #F0FFF4); }
 
@@ -218,6 +219,7 @@ function buildBlock(block, index) {
     item.textContent = block.emoji;
     item.addEventListener('pointerdown', () => {
       if (answered) return;
+      SFX.pop();
       const was = item.dataset.counted === 'true';
       item.dataset.counted = was ? 'false' : 'true';
       item.classList.toggle('counted', !was);
@@ -244,8 +246,10 @@ function buildBlock(block, index) {
     btn.textContent = num;
     btn.addEventListener('pointerdown', () => {
       if (answered) return;
+      SFX.click();
 
       if (num === block.count) {
+        SFX.correct();
         answered = true;
         btn.classList.add('correct');
         card.classList.add('solved');
@@ -256,6 +260,7 @@ function buildBlock(block, index) {
           setTimeout(showFireworks, 600);
         }
       } else {
+        SFX.wrong();
         btn.classList.add('wrong');
         setTimeout(() => {
           btn.classList.remove('wrong');
@@ -287,6 +292,7 @@ function buildAll() {
 }
 
 function showFireworks() {
+  SFX.celebrate();
   document.getElementById('fw-msg').textContent =
     `🎉 You got ${stars} stars! Amazing! 🌟`;
   document.getElementById('fireworks-overlay').classList.add('show');

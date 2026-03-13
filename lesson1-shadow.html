@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
   <title>Shadow Match 🚌</title>
   <link rel="stylesheet" href="style.css">
+  <script src="sounds.js"></script>
   <style>
     body { background: linear-gradient(135deg, #FFF9F0, #F5F0FF); overflow: hidden; }
 
@@ -274,6 +275,9 @@ wrap.addEventListener('pointerdown', e => {
   const target = e.target.closest('.object-item');
   if (!target || matched[target.dataset.pairId]) return;
 
+  SFX.click();   // tap on image
+  SFX.drag();    // drag starts
+
   dragging    = true;
   dragFromId  = target.dataset.pairId;
   dragStart   = centerOf(target);
@@ -307,6 +311,7 @@ wrap.addEventListener('pointerup', e => {
 
   if (hitId === dragFromId) {
     // ✅ Correct match
+    SFX.correct();
     matched[dragFromId] = true;
     totalMatched++;
     document.getElementById('obj-' + dragFromId).classList.add('matched-correct');
@@ -318,17 +323,18 @@ wrap.addEventListener('pointerup', e => {
 
     if (totalMatched === pairs.length) {
       setTimeout(() => {
+        SFX.celebrate();
         document.getElementById('next-btn').classList.add('show');
         showFeedback('All matched! Amazing! 🌟', 'correct');
       }, 400);
     }
   } else if (hitId) {
     // ❌ Wrong — flash red line then remove
+    SFX.wrong();
     const toEl = document.getElementById('shd-' + hitId);
     redrawLines(dragStart, centerOf(toEl));
     ctx.strokeStyle = '#FF4757';
-    // re-draw last segment in red
-    redrawLines(); // clear temp
+    redrawLines();
     drawLine(dragStart, centerOf(toEl), '#FF4757', 5);
     showFeedback('Try again! 🙈', 'wrong');
     setTimeout(() => { redrawLines(); clearFeedback(); }, 700);
