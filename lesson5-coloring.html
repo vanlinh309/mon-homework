@@ -24,10 +24,10 @@
       text-align: center;
     }
 
-    /* Legend */
+    /* Legend — now acts as a tool picker */
     .legend {
       display: flex;
-      gap: 20px;
+      gap: 16px;
       flex-wrap: wrap;
       justify-content: center;
       background: #fff;
@@ -41,6 +41,18 @@
       gap: 10px;
       font-size: 1.2rem;
       font-weight: bold;
+      padding: 10px 18px;
+      border-radius: 16px;
+      border: 3px solid transparent;
+      cursor: pointer;
+      touch-action: manipulation;
+      transition: border-color 0.15s, background 0.15s, transform 0.12s;
+    }
+    .legend-item:active { transform: scale(0.94); }
+    .legend-item.selected {
+      border-color: #333;
+      background: #f5f5f5;
+      transform: scale(1.06);
     }
 
     /* Drawing area */
@@ -123,24 +135,24 @@
 </div>
 
 <main>
-  <div class="instruction">
-    Tap each shape to color it! Remember the rule ⬇️
+  <div class="instruction" id="instruction">
+    👆 First tap a shape below to pick your color!
   </div>
 
-  <div class="legend">
-    <div class="legend-item">
+  <div class="legend" id="legend">
+    <div class="legend-item" data-tool="circle" onclick="selectTool('circle', this)">
       <svg width="44" height="44" viewBox="0 0 44 44">
         <circle cx="22" cy="22" r="18" fill="#FFD700" stroke="#cca000" stroke-width="2"/>
       </svg>
       Yellow
     </div>
-    <div class="legend-item">
+    <div class="legend-item" data-tool="rect" onclick="selectTool('rect', this)">
       <svg width="44" height="44" viewBox="0 0 44 44">
         <rect x="4" y="10" width="36" height="24" fill="#FF4757" stroke="#bb1f2e" stroke-width="2" rx="3"/>
       </svg>
       Red
     </div>
-    <div class="legend-item">
+    <div class="legend-item" data-tool="triangle" onclick="selectTool('triangle', this)">
       <svg width="44" height="44" viewBox="0 0 44 44">
         <polygon points="22,4 42,40 2,40" fill="#2F86EB" stroke="#1a5faa" stroke-width="2"/>
       </svg>
@@ -253,7 +265,18 @@ const SCENES = [
 
 let currentSceneIdx = 0;
 let stars = 0;
-let shapeStates = {}; // id -> { colored: bool, correct: bool }
+let shapeStates = {};
+let selectedTool = null; // 'circle' | 'rect' | 'triangle' | null
+
+function selectTool(type, el) {
+  selectedTool = type;
+  document.querySelectorAll('.legend-item').forEach(i => i.classList.remove('selected'));
+  el.classList.add('selected');
+  const names = { circle: 'circles 🟡', rect: 'rectangles 🟥', triangle: 'triangles 🔵' };
+  document.getElementById('instruction').textContent =
+    `Now tap all the ${names[type]}!`;
+  clearFeedback();
+}
 
 function buildTabs() {
   const tabsEl = document.getElementById('scene-tabs');
@@ -270,6 +293,9 @@ function buildTabs() {
 function renderScene() {
   buildTabs();
   shapeStates = {};
+  selectedTool = null;
+  document.querySelectorAll('.legend-item').forEach(i => i.classList.remove('selected'));
+  document.getElementById('instruction').textContent = '👆 First tap a shape below to pick your color!';
   const scene = SCENES[currentSceneIdx];
   const area = document.getElementById('drawing-area');
   area.innerHTML = '';
@@ -310,6 +336,21 @@ function renderScene() {
 }
 
 function colorShape(id, type, el) {
+  if (!selectedTool) {
+    showFeedback('Pick a color first! 👆', 'wrong');
+    setTimeout(clearFeedback, 1500);
+    return;
+  }
+  if (selectedTool !== type) {
+    // Wrong shape type — shake it
+    el.style.animation = 'none';
+    requestAnimationFrame(() => { el.style.animation = 'shake 0.5s ease'; });
+    const names = { circle: 'circle', rect: 'rectangle', triangle: 'triangle' };
+    showFeedback(`That's a ${names[type]}! Pick its color first! 🎨`, 'wrong');
+    setTimeout(clearFeedback, 1800);
+    return;
+  }
+
   const rule = RULES[type];
   el.style.fill = rule.color;
   el.classList.add('done');
