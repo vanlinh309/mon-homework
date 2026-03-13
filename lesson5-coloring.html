@@ -1,0 +1,407 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+  <title>Color Shapes 🎨</title>
+  <link rel="stylesheet" href="style.css">
+  <style>
+    body { background: linear-gradient(135deg, #FFF9F0, #F0F8FF); }
+
+    main {
+      max-width: 960px;
+      margin: 0 auto;
+      padding: 16px 20px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 16px;
+    }
+
+    .instruction {
+      font-size: 1.15rem;
+      color: #555;
+      text-align: center;
+    }
+
+    /* Legend */
+    .legend {
+      display: flex;
+      gap: 20px;
+      flex-wrap: wrap;
+      justify-content: center;
+      background: #fff;
+      border-radius: 20px;
+      padding: 14px 24px;
+      box-shadow: var(--shadow);
+    }
+    .legend-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 1.2rem;
+      font-weight: bold;
+    }
+
+    /* Drawing area */
+    .drawings-wrap {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 24px;
+      justify-content: center;
+      width: 100%;
+    }
+
+    .drawing-card {
+      background: #fff;
+      border-radius: 24px;
+      padding: 20px;
+      box-shadow: var(--shadow);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 10px;
+    }
+    .drawing-card h3 {
+      font-size: 1.1rem;
+      color: #555;
+    }
+
+    svg.scene {
+      width: 220px;
+      height: 200px;
+      overflow: visible;
+    }
+
+    /* Clickable shapes */
+    .colorable {
+      cursor: pointer;
+      stroke: #333;
+      stroke-width: 2.5;
+      transition: filter 0.15s;
+      fill: #E8E8E8;
+    }
+    .colorable:hover { filter: brightness(0.9); }
+    .colorable.done { stroke: #666; }
+
+    .feedback { margin: 0; }
+
+    /* Scene selector tabs */
+    .scene-tabs {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+    .scene-tab {
+      padding: 10px 20px;
+      border-radius: 50px;
+      border: 3px solid #ddd;
+      background: #fff;
+      font-family: var(--font-main);
+      font-size: 1rem;
+      cursor: pointer;
+      touch-action: manipulation;
+      transition: border-color 0.15s, background 0.15s;
+    }
+    .scene-tab.active {
+      border-color: var(--color-blue);
+      background: #E8F4FF;
+    }
+
+    .check-btn {
+      margin-top: 8px;
+    }
+  </style>
+</head>
+<body>
+
+<div class="top-bar">
+  <button class="btn-home" onclick="location.href='index.html'">🏠 Home</button>
+  <h1>Color Shapes 🎨</h1>
+  <div class="star-bar">⭐ <span id="star-count">0</span></div>
+</div>
+
+<main>
+  <div class="instruction">
+    Tap each shape to color it! Remember the rule ⬇️
+  </div>
+
+  <div class="legend">
+    <div class="legend-item">
+      <svg width="44" height="44" viewBox="0 0 44 44">
+        <circle cx="22" cy="22" r="18" fill="#FFD700" stroke="#cca000" stroke-width="2"/>
+      </svg>
+      Yellow
+    </div>
+    <div class="legend-item">
+      <svg width="44" height="44" viewBox="0 0 44 44">
+        <rect x="4" y="10" width="36" height="24" fill="#FF4757" stroke="#bb1f2e" stroke-width="2" rx="3"/>
+      </svg>
+      Red
+    </div>
+    <div class="legend-item">
+      <svg width="44" height="44" viewBox="0 0 44 44">
+        <polygon points="22,4 42,40 2,40" fill="#2F86EB" stroke="#1a5faa" stroke-width="2"/>
+      </svg>
+      Blue
+    </div>
+  </div>
+
+  <div class="scene-tabs" id="scene-tabs"></div>
+
+  <div class="feedback" id="feedback"></div>
+
+  <div class="drawings-wrap" id="drawing-area"></div>
+
+  <button class="btn btn-green check-btn" id="check-btn" onclick="checkAll()">Check My Work ✅</button>
+  <button class="btn btn-orange" id="reset-btn" onclick="resetScene()" style="display:none">Try Again 🔄</button>
+</main>
+
+<!-- Fireworks overlay -->
+<div id="fireworks-overlay">
+  <div class="fw-msg" id="fw-msg">🎨 Perfect! All colored! 🌈</div>
+  <button class="btn btn-blue" onclick="nextScene()" style="font-size:1.2rem;padding:16px 32px;">
+    Next Picture ➡️
+  </button>
+  <button class="btn btn-green" onclick="restartAll()" style="font-size:1.1rem;padding:14px 28px;">
+    Play Again 🔄
+  </button>
+</div>
+
+<script>
+// Color rules
+const RULES = {
+  circle:    { color: '#FFD700', name: 'Yellow' },
+  rect:      { color: '#FF4757', name: 'Red'    },
+  triangle:  { color: '#2F86EB', name: 'Blue'   },
+};
+
+// Each scene: array of shape descriptors
+// type: 'circle'|'rect'|'triangle'
+// SVG attributes + label
+const SCENES = [
+  {
+    name: 'House 🏠',
+    shapes: [
+      // body rectangle
+      { id: 's1', type: 'rect',     tag: 'rect',    attrs: { x:60, y:100, width:120, height:90 } },
+      // roof triangle
+      { id: 's2', type: 'triangle', tag: 'polygon', attrs: { points:'40,105 120,30 200,105' } },
+      // door rectangle
+      { id: 's3', type: 'rect',     tag: 'rect',    attrs: { x:100, y:140, width:40, height:50 } },
+      // window left circle
+      { id: 's4', type: 'circle',   tag: 'circle',  attrs: { cx:82, cy:130, r:16 } },
+      // window right circle
+      { id: 's5', type: 'circle',   tag: 'circle',  attrs: { cx:158, cy:130, r:16 } },
+      // sun circle
+      { id: 's6', type: 'circle',   tag: 'circle',  attrs: { cx:30, cy:35, r:22 } },
+    ]
+  },
+  {
+    name: 'Train 🚂',
+    shapes: [
+      // body
+      { id: 't1', type: 'rect',     tag: 'rect',    attrs: { x:20, y:80, width:160, height:70 } },
+      // cab
+      { id: 't2', type: 'rect',     tag: 'rect',    attrs: { x:140, y:50, width:55, height:55 } },
+      // chimney rect
+      { id: 't3', type: 'rect',     tag: 'rect',    attrs: { x:30, y:50, width:25, height:35 } },
+      // wheel 1
+      { id: 't4', type: 'circle',   tag: 'circle',  attrs: { cx:65, cy:160, r:22 } },
+      // wheel 2
+      { id: 't5', type: 'circle',   tag: 'circle',  attrs: { cx:135, cy:160, r:22 } },
+      // roof triangle
+      { id: 't6', type: 'triangle', tag: 'polygon', attrs: { points:'130,55 165,20 200,55' } },
+    ]
+  },
+  {
+    name: 'Rocket 🚀',
+    shapes: [
+      // body rect
+      { id: 'r1', type: 'rect',     tag: 'rect',    attrs: { x:75, y:60, width:70, height:120 } },
+      // nose triangle
+      { id: 'r2', type: 'triangle', tag: 'polygon', attrs: { points:'75,65 110,5 145,65' } },
+      // left fin triangle
+      { id: 'r3', type: 'triangle', tag: 'polygon', attrs: { points:'75,130 40,185 75,185' } },
+      // right fin triangle
+      { id: 'r4', type: 'triangle', tag: 'polygon', attrs: { points:'145,130 180,185 145,185' } },
+      // window circle
+      { id: 'r5', type: 'circle',   tag: 'circle',  attrs: { cx:110, cy:110, r:22 } },
+      // flame circle
+      { id: 'r6', type: 'circle',   tag: 'circle',  attrs: { cx:110, cy:195, r:16 } },
+    ]
+  },
+  {
+    name: 'Boat ⛵',
+    shapes: [
+      // hull rect
+      { id: 'b1', type: 'rect',     tag: 'rect',    attrs: { x:20, y:130, width:180, height:50 } },
+      // sail triangle
+      { id: 'b2', type: 'triangle', tag: 'polygon', attrs: { points:'90,130 90,30 170,130' } },
+      // flag triangle
+      { id: 'b3', type: 'triangle', tag: 'polygon', attrs: { points:'90,30 90,10 120,20' } },
+      // porthole circle
+      { id: 'b4', type: 'circle',   tag: 'circle',  attrs: { cx:50, cy:148, r:14 } },
+      // porthole circle 2
+      { id: 'b5', type: 'circle',   tag: 'circle',  attrs: { cx:155, cy:148, r:14 } },
+      // cabin rect
+      { id: 'b6', type: 'rect',     tag: 'rect',    attrs: { x:30, y:105, width:55, height:30 } },
+    ]
+  },
+];
+
+let currentSceneIdx = 0;
+let stars = 0;
+let shapeStates = {}; // id -> { colored: bool, correct: bool }
+
+function buildTabs() {
+  const tabsEl = document.getElementById('scene-tabs');
+  tabsEl.innerHTML = '';
+  SCENES.forEach((sc, i) => {
+    const btn = document.createElement('button');
+    btn.className = 'scene-tab' + (i === currentSceneIdx ? ' active' : '');
+    btn.textContent = sc.name;
+    btn.addEventListener('pointerdown', () => { currentSceneIdx = i; renderScene(); });
+    tabsEl.appendChild(btn);
+  });
+}
+
+function renderScene() {
+  buildTabs();
+  shapeStates = {};
+  const scene = SCENES[currentSceneIdx];
+  const area = document.getElementById('drawing-area');
+  area.innerHTML = '';
+
+  const card = document.createElement('div');
+  card.className = 'drawing-card';
+
+  const title = document.createElement('h3');
+  title.textContent = scene.name;
+  card.appendChild(title);
+
+  const svgNS = 'http://www.w3.org/2000/svg';
+  const svg = document.createElementNS(svgNS, 'svg');
+  svg.setAttribute('viewBox', '0 0 220 200');
+  svg.classList.add('scene');
+
+  scene.shapes.forEach(sh => {
+    shapeStates[sh.id] = { colored: false };
+    const el = document.createElementNS(svgNS, sh.tag);
+    Object.entries(sh.attrs).forEach(([k,v]) => el.setAttribute(k, v));
+    el.classList.add('colorable');
+    el.id = 'shape-' + sh.id;
+    el.dataset.type = sh.type;
+    el.dataset.id = sh.id;
+    el.addEventListener('pointerdown', (e) => {
+      e.preventDefault();
+      colorShape(sh.id, sh.type, el);
+    });
+    svg.appendChild(el);
+  });
+
+  card.appendChild(svg);
+  area.appendChild(card);
+
+  clearFeedback();
+  document.getElementById('reset-btn').style.display = 'none';
+  document.getElementById('check-btn').style.display = 'inline-flex';
+}
+
+function colorShape(id, type, el) {
+  const rule = RULES[type];
+  el.style.fill = rule.color;
+  el.classList.add('done');
+  shapeStates[id].colored = true;
+
+  // Small pop animation
+  el.style.filter = 'brightness(1.3)';
+  setTimeout(() => { el.style.filter = ''; }, 300);
+}
+
+function checkAll() {
+  const scene = SCENES[currentSceneIdx];
+  const allColored = scene.shapes.every(sh => shapeStates[sh.id] && shapeStates[sh.id].colored);
+
+  if (!allColored) {
+    showFeedback('Color all the shapes first! 🖌️', 'wrong');
+    // Wiggle uncolored shapes
+    scene.shapes.forEach(sh => {
+      if (!shapeStates[sh.id].colored) {
+        const el = document.getElementById('shape-' + sh.id);
+        el.style.animation = 'none';
+        requestAnimationFrame(() => {
+          el.style.animation = 'shake 0.5s ease';
+        });
+      }
+    });
+    return;
+  }
+
+  // Check correctness (shapes are auto-colored with correct color, so always correct)
+  stars++;
+  document.getElementById('star-count').textContent = stars;
+  showFeedback('Perfect! 🌟 All shapes colored!', 'correct');
+  setTimeout(() => {
+    showFireworks();
+  }, 800);
+}
+
+function showFireworks() {
+  const overlay = document.getElementById('fireworks-overlay');
+  overlay.classList.add('show');
+  document.getElementById('fw-msg').textContent = `🎨 ${SCENES[currentSceneIdx].name} — Perfect! ⭐`;
+  spawnFireworks();
+}
+
+function spawnFireworks() {
+  const overlay = document.getElementById('fireworks-overlay');
+  const colors = ['#FF4757','#FFD700','#2ED573','#2F86EB','#A855F7','#FF69B4'];
+  for (let i = 0; i < 18; i++) {
+    setTimeout(() => {
+      const c = document.createElement('div');
+      c.className = 'firework-circle';
+      const size = 20 + Math.random() * 40;
+      c.style.cssText = `width:${size}px;height:${size}px;background:${colors[Math.floor(Math.random()*colors.length)]};left:${Math.random()*100}%;top:${Math.random()*100}%;animation-duration:${0.8+Math.random()*0.8}s;`;
+      overlay.appendChild(c);
+      setTimeout(() => c.remove(), 1800);
+    }, i * 80);
+  }
+}
+
+function nextScene() {
+  document.getElementById('fireworks-overlay').classList.remove('show');
+  currentSceneIdx = (currentSceneIdx + 1) % SCENES.length;
+  renderScene();
+}
+
+function restartAll() {
+  document.getElementById('fireworks-overlay').classList.remove('show');
+  stars = 0;
+  document.getElementById('star-count').textContent = '0';
+  currentSceneIdx = 0;
+  renderScene();
+}
+
+function resetScene() {
+  renderScene();
+}
+
+function showFeedback(msg, type) {
+  const el = document.getElementById('feedback');
+  el.textContent = msg;
+  el.className = `feedback ${type} show`;
+}
+
+function clearFeedback() {
+  const el = document.getElementById('feedback');
+  el.textContent = '';
+  el.className = 'feedback';
+}
+
+// Init
+renderScene();
+</script>
+</body>
+</html>

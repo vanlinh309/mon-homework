@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+  <title>Pattern Power 🔴</title>
+  <link rel="stylesheet" href="style.css">
+  <style>
+    body { background: linear-gradient(135deg, #FFF9F0, #FFFDE7); }
+
+    main {
+      max-width: 800px;
+      margin: 0 auto;
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 24px;
+    }
+
+    .instruction {
+      font-size: 1.3rem;
+      color: #555;
+      text-align: center;
+    }
+
+    /* Pattern Row */
+    .pattern-row {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      padding: 20px;
+      background: #fff;
+      border-radius: 24px;
+      box-shadow: var(--shadow);
+      min-height: 120px;
+      width: 100%;
+    }
+
+    .shape-item {
+      width: 72px;
+      height: 72px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 2.2rem;
+    }
+
+    .missing-slot {
+      width: 72px;
+      height: 72px;
+      border: 4px dashed #ccc;
+      border-radius: 14px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 2rem;
+      color: #bbb;
+      background: #fafafa;
+    }
+
+    /* Choices */
+    .choices {
+      display: flex;
+      gap: 20px;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+
+    .choice-btn {
+      width: 100px;
+      height: 100px;
+      background: #fff;
+      border: 3px solid #ddd;
+      border-radius: 20px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 2.6rem;
+      cursor: pointer;
+      touch-action: manipulation;
+      transition: transform 0.12s, border-color 0.12s, box-shadow 0.12s;
+      box-shadow: 0 4px 0 #ddd;
+    }
+    .choice-btn:active, .choice-btn:hover {
+      transform: scale(1.08);
+      border-color: var(--color-blue);
+      box-shadow: 0 4px 0 var(--color-blue);
+    }
+    .choice-btn.correct-pick {
+      border-color: var(--color-green);
+      background: #d4ffd4;
+      animation: flash-green 0.6s ease;
+    }
+    .choice-btn.wrong-pick {
+      border-color: var(--color-red);
+      background: #ffe0e0;
+      animation: shake 0.5s ease;
+    }
+
+    .feedback { margin: 0; }
+
+    /* Progress */
+    .progress-bar-wrap {
+      width: 100%;
+      background: #eee;
+      border-radius: 20px;
+      height: 18px;
+      overflow: hidden;
+    }
+    .progress-bar-fill {
+      height: 100%;
+      background: linear-gradient(90deg, var(--color-green), var(--color-blue));
+      border-radius: 20px;
+      transition: width 0.4s ease;
+    }
+
+    .round-label {
+      font-size: 1rem;
+      color: #888;
+    }
+
+    .next-btn {
+      display: none;
+    }
+    .next-btn.show {
+      display: inline-flex;
+    }
+  </style>
+</head>
+<body>
+
+<div class="top-bar">
+  <button class="btn-home" onclick="location.href='index.html'">🏠 Home</button>
+  <h1>Pattern Power 🔴</h1>
+  <div class="star-bar">⭐ <span id="star-count">0</span></div>
+</div>
+
+<main>
+  <div class="round-label" id="round-label">Round 1 of 8</div>
+  <div class="progress-bar-wrap">
+    <div class="progress-bar-fill" id="progress-bar" style="width:0%"></div>
+  </div>
+
+  <div class="instruction" id="instruction">What comes next? Find the missing piece! 🔍</div>
+
+  <div class="pattern-row" id="pattern-row"></div>
+
+  <div class="feedback" id="feedback"></div>
+
+  <div class="choices" id="choices"></div>
+
+  <button class="btn btn-blue next-btn" id="next-btn" onclick="nextRound()">Next ➡️</button>
+</main>
+
+<!-- Fireworks overlay -->
+<div id="fireworks-overlay">
+  <div class="fw-msg" id="fw-msg">🎉 Amazing! You finished! 🌟</div>
+  <button class="btn btn-blue" onclick="restartGame()" style="font-size:1.2rem;padding:16px 32px;">
+    Play Again 🔄
+  </button>
+</div>
+
+<script>
+// ---- Shape definitions ----
+const SHAPES = {
+  '🔴': 'red circle',
+  '🔵': 'blue circle',
+  '🟡': 'yellow circle',
+  '🟢': 'green circle',
+  '🟠': 'orange circle',
+  '🟣': 'purple circle',
+  '🔶': 'orange diamond',
+  '🔷': 'blue diamond',
+  '⭐': 'star',
+  '❤️': 'heart',
+  '🌟': 'glow star',
+  '🍎': 'apple',
+  '🍊': 'orange',
+  '🍋': 'lemon',
+};
+
+// Rounds: each has a pattern sequence with one '?' slot
+const ROUNDS = [
+  // Level 1: AB patterns  
+  { pattern: ['⭐','❤️','⭐','❤️','⭐','?'], answer: '❤️', choices: ['⭐','❤️','🌟'], hint: 'Star, Heart, Star, Heart...' },
+  { pattern: ['🍎','🍊','🔵','🍎','?','🔵'], answer: '🍊', choices: ['🍎','🍊','🔵'], hint: 'Apple, Orange, Lemon...' },  
+  { pattern: ['🌳','☀️','?','🌳','☀️','☀️'], answer: '☀️', choices: ['🌳','☀️','🌙'], hint: 'Tree, Sun, Moon...' },
+];
+
+let currentRound = 0;
+let stars = 0;
+let answered = false;
+
+function init() {
+  currentRound = 0;
+  stars = 0;
+  answered = false;
+  document.getElementById('star-count').textContent = '0';
+  showRound();
+}
+
+function showRound() {
+  answered = false;
+  const round = ROUNDS[currentRound];
+  document.getElementById('round-label').textContent = `Round ${currentRound + 1} of ${ROUNDS.length}`;
+  document.getElementById('progress-bar').style.width = `${(currentRound / ROUNDS.length) * 100}%`;
+  document.getElementById('next-btn').classList.remove('show');
+
+  // Build pattern row
+  const row = document.getElementById('pattern-row');
+  row.innerHTML = '';
+  round.pattern.forEach(sym => {
+    if (sym === '?') {
+      const slot = document.createElement('div');
+      slot.className = 'missing-slot';
+      slot.textContent = '?';
+      slot.id = 'missing-slot';
+      row.appendChild(slot);
+    } else {
+      const item = document.createElement('div');
+      item.className = 'shape-item';
+      item.textContent = sym;
+      row.appendChild(item);
+    }
+  });
+
+  // Build choices
+  const choicesEl = document.getElementById('choices');
+  choicesEl.innerHTML = '';
+  // Shuffle choices
+  const shuffled = [...round.choices].sort(() => Math.random() - 0.5);
+  shuffled.forEach(sym => {
+    const btn = document.createElement('button');
+    btn.className = 'choice-btn';
+    btn.textContent = sym;
+    btn.setAttribute('data-value', sym);
+    btn.addEventListener('pointerdown', () => handleChoice(sym, btn));
+    choicesEl.appendChild(btn);
+  });
+
+  clearFeedback();
+}
+
+function handleChoice(sym, btn) {
+  if (answered) return;
+  answered = true;
+
+  const round = ROUNDS[currentRound];
+  const slot = document.getElementById('missing-slot');
+
+  if (sym === round.answer) {
+    btn.classList.add('correct-pick');
+    slot.textContent = sym;
+    slot.style.border = '4px solid var(--color-green)';
+    slot.style.background = '#d4ffd4';
+    stars++;
+    document.getElementById('star-count').textContent = stars;
+    showFeedback('Great job! ⭐', 'correct');
+    document.getElementById('next-btn').classList.add('show');
+  } else {
+    btn.classList.add('wrong-pick');
+    showFeedback('Try again! 🙈', 'wrong');
+    setTimeout(() => {
+      btn.classList.remove('wrong-pick');
+      btn.disabled = true;
+      btn.style.opacity = '0.4';
+      answered = false;
+    }, 700);
+  }
+}
+
+function showFeedback(msg, type) {
+  const el = document.getElementById('feedback');
+  el.textContent = msg;
+  el.className = `feedback ${type} show`;
+  if (type === 'correct') return; // stays until next round
+  setTimeout(() => { el.classList.remove('show'); }, 1500);
+}
+
+function clearFeedback() {
+  const el = document.getElementById('feedback');
+  el.textContent = '';
+  el.className = 'feedback';
+}
+
+function nextRound() {
+  currentRound++;
+  if (currentRound >= ROUNDS.length) {
+    showFireworks();
+  } else {
+    showRound();
+  }
+}
+
+function showFireworks() {
+  document.getElementById('progress-bar').style.width = '100%';
+  const overlay = document.getElementById('fireworks-overlay');
+  overlay.classList.add('show');
+  document.getElementById('fw-msg').textContent = `🎉 You got ${stars} stars! Amazing! 🌟`;
+  spawnFireworks();
+}
+
+function spawnFireworks() {
+  const overlay = document.getElementById('fireworks-overlay');
+  const colors = ['#FF4757','#FFD700','#2ED573','#2F86EB','#A855F7','#FF69B4'];
+  for (let i = 0; i < 20; i++) {
+    setTimeout(() => {
+      const c = document.createElement('div');
+      c.className = 'firework-circle';
+      const size = 20 + Math.random() * 40;
+      c.style.cssText = `
+        width: ${size}px; height: ${size}px;
+        background: ${colors[Math.floor(Math.random()*colors.length)]};
+        left: ${Math.random()*100}%; top: ${Math.random()*100}%;
+        animation-duration: ${0.8 + Math.random()*0.8}s;
+      `;
+      overlay.appendChild(c);
+      setTimeout(() => c.remove(), 1800);
+    }, i * 80);
+  }
+}
+
+function restartGame() {
+  document.getElementById('fireworks-overlay').classList.remove('show');
+  init();
+}
+
+init();
+</script>
+</body>
+</html>

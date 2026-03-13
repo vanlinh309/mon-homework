@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+  <title>Count It Up! 🍎</title>
+  <link rel="stylesheet" href="style.css">
+  <style>
+    body { background: linear-gradient(135deg, #FFF9F0, #F0FFF4); }
+
+    main {
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 14px 16px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 14px;
+    }
+
+    .instruction { font-size: 1.1rem; color: #555; text-align: center; }
+
+    /* 2×2 grid */
+    .blocks-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+      width: 100%;
+    }
+
+    /* Each counting block */
+    .count-block {
+      background: #fff;
+      border-radius: 24px;
+      padding: 16px 14px 14px;
+      box-shadow: var(--shadow);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 10px;
+      transition: box-shadow 0.3s;
+    }
+    .count-block.solved {
+      box-shadow: 0 0 0 4px var(--color-green), var(--shadow);
+      background: #f4fff7;
+    }
+    .count-block.solved .num-choices { pointer-events: none; opacity: 0.5; }
+
+    /* Objects area inside a block */
+    .obj-grid {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      justify-content: center;
+      min-height: 60px;
+    }
+
+    .obj-item {
+      width: 80px;
+      height: 80px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 3.2rem;
+      border-radius: 12px;
+      border: 2px solid #eee;
+      background: #fafafa;
+      cursor: pointer;
+      touch-action: manipulation;
+      transition: transform 0.1s, border-color 0.1s, background 0.1s;
+      position: relative;
+      flex-shrink: 0;
+    }
+    .obj-item:active { transform: scale(0.88); }
+    .obj-item.counted {
+      border-color: var(--color-green);
+      background: #d4ffd4;
+    }
+    .obj-item.counted::after {
+      content: '✓';
+      position: absolute;
+      top: -7px; right: -7px;
+      background: var(--color-green);
+      color: #fff;
+      border-radius: 50%;
+      width: 20px; height: 20px;
+      font-size: 0.75rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: bold;
+    }
+
+    /* Tap counter badge */
+    .tap-counter {
+      font-size: 1rem;
+      color: var(--color-blue);
+      font-weight: bold;
+      background: #E8F4FF;
+      border-radius: 10px;
+      padding: 4px 14px;
+    }
+
+    /* Number choice buttons */
+    .num-choices {
+      display: flex;
+      gap: 10px;
+      justify-content: center;
+    }
+    .num-btn {
+      width: 64px;
+      height: 64px;
+      border-radius: 16px;
+      background: #fff;
+      border: 3px solid #ddd;
+      font-family: var(--font-main);
+      font-size: 1.6rem;
+      font-weight: bold;
+      color: #333;
+      cursor: pointer;
+      touch-action: manipulation;
+      transition: transform 0.1s, border-color 0.1s, box-shadow 0.1s;
+      box-shadow: 0 3px 0 #ddd;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .num-btn:active, .num-btn:hover {
+      transform: scale(1.08);
+      border-color: var(--color-blue);
+      box-shadow: 0 3px 0 var(--color-blue);
+    }
+    .num-btn.correct {
+      border-color: var(--color-green);
+      background: #d4ffd4;
+      animation: flash-green 0.6s;
+    }
+    .num-btn.wrong {
+      border-color: var(--color-red);
+      background: #ffe0e0;
+      animation: shake 0.5s;
+    }
+
+    /* Solved checkmark overlay */
+    .solved-badge {
+      display: none;
+      font-size: 2rem;
+    }
+    .count-block.solved .solved-badge { display: block; }
+
+    @media (max-width: 500px) {
+      .obj-item { width: 54px; height: 54px; font-size: 2rem; }
+      .num-btn   { width: 56px; height: 56px; font-size: 1.4rem; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="top-bar">
+  <button class="btn-home" onclick="location.href='index.html'">🏠 Home</button>
+  <h1>Count It Up! 🍎</h1>
+  <div class="star-bar">⭐ <span id="star-count">0</span></div>
+</div>
+
+<main>
+  <div class="instruction">Tap each object to count it, then pick the right number! 🔢</div>
+
+  <div class="blocks-grid" id="blocks-grid"></div>
+</main>
+
+<!-- Fireworks -->
+<div id="fireworks-overlay">
+  <div class="fw-msg" id="fw-msg">🎉 You counted everything! 🌟</div>
+  <button class="btn btn-blue" onclick="restartGame()" style="font-size:1.2rem;padding:16px 32px;">
+    Play Again 🔄
+  </button>
+</div>
+
+<script>
+// Fixed 4 blocks: [emoji, count]
+const BLOCKS = [
+  { emoji: '🚗', count: 6 },
+  { emoji: '🐶', count: 8 },
+  { emoji: '🍕', count: 5 },
+  { emoji: '🌸', count: 7 },
+];
+
+let stars = 0;
+let solvedCount = 0;
+
+function generateChoices(correct) {
+  const pool = new Set([correct]);
+  const candidates = [correct - 2, correct - 1, correct + 1, correct + 2, correct + 3]
+    .filter(n => n >= 1 && n !== correct);
+  candidates.sort(() => Math.random() - 0.5);
+  for (const n of candidates) {
+    if (pool.size === 3) break;
+    pool.add(n);
+  }
+  return [...pool].sort(() => Math.random() - 0.5);
+}
+
+function buildBlock(block, index) {
+  let tapCount = 0;
+  let answered = false;
+
+  const card = document.createElement('div');
+  card.className = 'count-block';
+  card.id = 'block-' + index;
+
+  // Object grid
+  const grid = document.createElement('div');
+  grid.className = 'obj-grid';
+
+  for (let i = 0; i < block.count; i++) {
+    const item = document.createElement('div');
+    item.className = 'obj-item';
+    item.textContent = block.emoji;
+    item.addEventListener('pointerdown', () => {
+      if (answered) return;
+      const was = item.dataset.counted === 'true';
+      item.dataset.counted = was ? 'false' : 'true';
+      item.classList.toggle('counted', !was);
+      tapCount += was ? -1 : 1;
+      if (tapCount < 0) tapCount = 0;
+      counterEl.textContent = `Counted: ${tapCount}`;
+    });
+    grid.appendChild(item);
+  }
+
+  // Tap counter
+  const counterEl = document.createElement('div');
+  counterEl.className = 'tap-counter';
+  counterEl.textContent = 'Counted: 0';
+
+  // Number choices
+  const choicesWrap = document.createElement('div');
+  choicesWrap.className = 'num-choices';
+
+  const choices = generateChoices(block.count);
+  choices.forEach(num => {
+    const btn = document.createElement('button');
+    btn.className = 'num-btn';
+    btn.textContent = num;
+    btn.addEventListener('pointerdown', () => {
+      if (answered) return;
+
+      if (num === block.count) {
+        answered = true;
+        btn.classList.add('correct');
+        card.classList.add('solved');
+        stars++;
+        document.getElementById('star-count').textContent = stars;
+        solvedCount++;
+        if (solvedCount === BLOCKS.length) {
+          setTimeout(showFireworks, 600);
+        }
+      } else {
+        btn.classList.add('wrong');
+        setTimeout(() => {
+          btn.classList.remove('wrong');
+          btn.disabled = true;
+          btn.style.opacity = '0.4';
+        }, 600);
+      }
+    });
+    choicesWrap.appendChild(btn);
+  });
+
+  // Solved badge
+  const badge = document.createElement('div');
+  badge.className = 'solved-badge';
+  badge.textContent = '✅ Correct!';
+
+  card.appendChild(grid);
+  card.appendChild(counterEl);
+  card.appendChild(choicesWrap);
+  card.appendChild(badge);
+  return card;
+}
+
+function buildAll() {
+  solvedCount = 0;
+  const grid = document.getElementById('blocks-grid');
+  grid.innerHTML = '';
+  BLOCKS.forEach((b, i) => grid.appendChild(buildBlock(b, i)));
+}
+
+function showFireworks() {
+  document.getElementById('fw-msg').textContent =
+    `🎉 You got ${stars} stars! Amazing! 🌟`;
+  document.getElementById('fireworks-overlay').classList.add('show');
+  spawnFireworks();
+}
+
+function spawnFireworks() {
+  const overlay = document.getElementById('fireworks-overlay');
+  const colors = ['#FF4757','#FFD700','#2ED573','#2F86EB','#A855F7','#FF69B4'];
+  for (let i = 0; i < 22; i++) {
+    setTimeout(() => {
+      const c = document.createElement('div');
+      c.className = 'firework-circle';
+      const sz = 20 + Math.random() * 40;
+      c.style.cssText = `width:${sz}px;height:${sz}px;background:${colors[Math.floor(Math.random()*colors.length)]};left:${Math.random()*100}%;top:${Math.random()*100}%;animation-duration:${0.8+Math.random()*0.8}s;`;
+      overlay.appendChild(c);
+      setTimeout(() => c.remove(), 1800);
+    }, i * 80);
+  }
+}
+
+function restartGame() {
+  document.getElementById('fireworks-overlay').classList.remove('show');
+  stars = 0;
+  document.getElementById('star-count').textContent = '0';
+  buildAll();
+}
+
+buildAll();
+</script>
+</body>
+</html>
