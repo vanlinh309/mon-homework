@@ -6,6 +6,8 @@
   <title>Color Shapes 🎨</title>
   <link rel="stylesheet" href="style.css">
   <script src="sounds.js"></script>
+  <script src="sidebar.js"></script>
+  <script src="assignments/lesson5.js"></script>
   <style>
     body { background: linear-gradient(135deg, #FFF9F0, #F0F8FF); }
 
@@ -135,7 +137,7 @@
     }
   </style>
 </head>
-<body>
+<body class="lesson-body">
 
 <div class="top-bar">
   <button class="btn-home" onclick="location.href='index.html'">🏠 Home</button>
@@ -143,41 +145,57 @@
   <div class="star-bar">⭐ <span id="star-count">0</span></div>
 </div>
 
-<main>
-  <div class="instruction" id="instruction">
-    👆 First tap a shape below to pick your color!
-  </div>
+<div class="app-layout">
 
-  <div class="legend" id="legend">
-    <div class="legend-item" data-tool="circle" onclick="selectTool('circle', this)">
-      <svg width="44" height="44" viewBox="0 0 44 44">
-        <circle cx="22" cy="22" r="18" fill="#FFD700" stroke="#cca000" stroke-width="2"/>
-      </svg>
-      Yellow
-    </div>
-    <div class="legend-item" data-tool="rect" onclick="selectTool('rect', this)">
-      <svg width="44" height="44" viewBox="0 0 44 44">
-        <rect x="4" y="10" width="36" height="24" fill="#FF4757" stroke="#bb1f2e" stroke-width="2" rx="3"/>
-      </svg>
-      Red
-    </div>
-    <div class="legend-item" data-tool="triangle" onclick="selectTool('triangle', this)">
-      <svg width="44" height="44" viewBox="0 0 44 44">
-        <polygon points="22,4 42,40 2,40" fill="#2F86EB" stroke="#1a5faa" stroke-width="2"/>
-      </svg>
-      Blue
+  <!-- Sidebar -->
+  <div class="sidebar" id="sidebar">
+    <button class="sidebar-toggle" id="sidebar-toggle" onclick="toggleSidebar()">›</button>
+    <div class="sidebar-inner">
+      <div class="sidebar-title">Homework</div>
+      <div class="hw-list" id="hw-list"></div>
     </div>
   </div>
 
-  <div class="scene-tabs" id="scene-tabs"></div>
+  <!-- Main content -->
+  <div class="lesson-scroll">
+    <main>
+      <div class="instruction" id="instruction">
+        👆 First tap a shape below to pick your color!
+      </div>
 
-  <div class="feedback" id="feedback"></div>
+      <div class="legend" id="legend">
+        <div class="legend-item" data-tool="circle" onclick="selectTool('circle', this)">
+          <svg width="44" height="44" viewBox="0 0 44 44">
+            <circle cx="22" cy="22" r="18" fill="#FFD700" stroke="#cca000" stroke-width="2"/>
+          </svg>
+          Yellow
+        </div>
+        <div class="legend-item" data-tool="rect" onclick="selectTool('rect', this)">
+          <svg width="44" height="44" viewBox="0 0 44 44">
+            <rect x="4" y="10" width="36" height="24" fill="#FF4757" stroke="#bb1f2e" stroke-width="2" rx="3"/>
+          </svg>
+          Red
+        </div>
+        <div class="legend-item" data-tool="triangle" onclick="selectTool('triangle', this)">
+          <svg width="44" height="44" viewBox="0 0 44 44">
+            <polygon points="22,4 42,40 2,40" fill="#2F86EB" stroke="#1a5faa" stroke-width="2"/>
+          </svg>
+          Blue
+        </div>
+      </div>
 
-  <div class="drawings-wrap" id="drawing-area"></div>
+      <div class="scene-tabs" id="scene-tabs"></div>
 
-  <button class="btn btn-green check-btn" id="check-btn" onclick="checkAll()">Check My Work ✅</button>
-  <button class="btn btn-orange" id="reset-btn" onclick="resetScene()" style="display:none">Try Again 🔄</button>
-</main>
+      <div class="feedback" id="feedback"></div>
+
+      <div class="drawings-wrap" id="drawing-area"></div>
+
+      <button class="btn btn-green check-btn" id="check-btn" onclick="checkAll()">Check My Work ✅</button>
+      <button class="btn btn-orange" id="reset-btn" onclick="resetScene()" style="display:none">Try Again 🔄</button>
+    </main>
+  </div>
+
+</div><!-- end app-layout -->
 
 <!-- Fireworks overlay -->
 <div id="fireworks-overlay">
@@ -198,180 +216,28 @@ const RULES = {
   triangle:  { color: '#2F86EB', name: 'Blue'   },
 };
 
-// Each scene: array of shape descriptors
-// type: 'circle'|'rect'|'triangle'
-// SVG attributes + label
-const SCENES = [
-  {
-    name: 'House 🏠',
-    shapes: [
-      // body rectangle
-      { id: 's1', type: 'rect',     tag: 'rect',    attrs: { x:60, y:100, width:120, height:90 } },
-      // roof triangle
-      { id: 's2', type: 'triangle', tag: 'polygon', attrs: { points:'40,105 120,30 200,105' } },
-      // door rectangle
-      { id: 's3', type: 'rect',     tag: 'rect',    attrs: { x:100, y:140, width:40, height:50 } },
-      // window left circle
-      { id: 's4', type: 'circle',   tag: 'circle',  attrs: { cx:82, cy:130, r:16 } },
-      // window right circle
-      { id: 's5', type: 'circle',   tag: 'circle',  attrs: { cx:158, cy:130, r:16 } },
-      // sun circle
-      { id: 's6', type: 'circle',   tag: 'circle',  attrs: { cx:30, cy:35, r:22 } },
-    ]
-  },
-  // {
-  //   name: 'Train 🚂',
-  //   shapes: [
-  //     // body
-  //     { id: 't1', type: 'rect',     tag: 'rect',    attrs: { x:20, y:80, width:160, height:70 } },
-  //     // cab
-  //     { id: 't2', type: 'rect',     tag: 'rect',    attrs: { x:140, y:50, width:55, height:55 } },
-  //     // chimney rect
-  //     { id: 't3', type: 'rect',     tag: 'rect',    attrs: { x:30, y:50, width:25, height:35 } },
-  //     // wheel 1
-  //     { id: 't4', type: 'circle',   tag: 'circle',  attrs: { cx:65, cy:160, r:22 } },
-  //     // wheel 2
-  //     { id: 't5', type: 'circle',   tag: 'circle',  attrs: { cx:135, cy:160, r:22 } },
-  //     // roof triangle
-  //     { id: 't6', type: 'triangle', tag: 'polygon', attrs: { points:'130,55 165,20 200,55' } },
-  //   ]
-  // },
-    {
-      name: 'Train 🚂',
-      shapes: [
-        // main body
-        { id: 't1', type: 'rect', tag: 'rect', attrs: { x:20, y:80, width:180, height:70 } },
 
-        // front nose
-        { id: 't2', type: 'triangle', tag: 'polygon', attrs: { points:'200,80 230,115 200,150' } },
+// Assignments are loaded from assignments/lesson5.json
+// Requires a local HTTP server (not file://)
+let HOMEWORKS = [];
 
-        // cab
-        { id: 't3', type: 'rect', tag: 'rect', attrs: { x:140, y:45, width:65, height:45 } },
-
-        // cab roof
-        { id: 't4', type: 'triangle', tag: 'polygon', attrs: { points:'135,45 175,15 215,45' } },
-
-        // chimney base
-        { id: 't5', type: 'rect', tag: 'rect', attrs: { x:35, y:45, width:28, height:40 } },
-
-        // chimney top
-        { id: 't6', type: 'rect', tag: 'rect', attrs: { x:30, y:35, width:38, height:12 } },
-
-        // smoke circles
-        { id: 't7', type: 'circle', tag: 'circle', attrs: { cx:40, cy:20, r:8 } },
-        { id: 't8', type: 'circle', tag: 'circle', attrs: { cx:55, cy:10, r:10 } },
-        { id: 't9', type: 'circle', tag: 'circle', attrs: { cx:70, cy:0, r:12 } },
-
-        // windows
-        { id: 't10', type: 'rect', tag: 'rect', attrs: { x:150, y:55, width:18, height:18 } },
-        { id: 't11', type: 'rect', tag: 'rect', attrs: { x:175, y:55, width:18, height:18 } },
-
-        // body decorations
-        { id: 't12', type: 'rect', tag: 'rect', attrs: { x:40, y:95, width:25, height:25 } },
-        { id: 't13', type: 'rect', tag: 'rect', attrs: { x:75, y:95, width:25, height:25 } },
-        { id: 't14', type: 'rect', tag: 'rect', attrs: { x:110, y:95, width:25, height:25 } },
-
-        // wheel 1
-        { id: 't15', type: 'circle', tag: 'circle', attrs: { cx:70, cy:160, r:24 } },
-
-        // wheel 1 inner
-        { id: 't16', type: 'circle', tag: 'circle', attrs: { cx:70, cy:160, r:10 } },
-
-        // wheel 2
-        { id: 't17', type: 'circle', tag: 'circle', attrs: { cx:150, cy:160, r:24 } },
-
-        // wheel 2 inner
-        { id: 't18', type: 'circle', tag: 'circle', attrs: { cx:150, cy:160, r:10 } },
-
-        // wheel connector bar
-        { id: 't19', type: 'rect', tag: 'rect', attrs: { x:70, y:155, width:80, height:8 } },
-
-        // front cowcatcher (triangles)
-        { id: 't20', type: 'triangle', tag: 'polygon', attrs: { points:'200,150 230,150 215,175' } },
-        { id: 't21', type: 'triangle', tag: 'polygon', attrs: { points:'185,150 205,150 195,175' } }
-      ]
-  },
-  {
-  name: 'Rocket 🚀',
-  shapes: [
-    // body
-    { id: 'r1', type: 'rect', tag: 'rect', attrs: { x:75, y:60, width:70, height:120 } },
-
-    // body stripe
-    { id: 'r2', type: 'rect', tag: 'rect', attrs: { x:75, y:120, width:70, height:10 } },
-
-    // nose
-    { id: 'r3', type: 'triangle', tag: 'polygon', attrs: { points:'75,60 110,5 145,60' } },
-
-    // left fin
-    { id: 'r4', type: 'triangle', tag: 'polygon', attrs: { points:'75,130 40,185 75,185' } },
-
-    // right fin
-    { id: 'r5', type: 'triangle', tag: 'polygon', attrs: { points:'145,130 180,185 145,185' } },
-
-    // window outer
-    { id: 'r6', type: 'circle', tag: 'circle', attrs: { cx:110, cy:100, r:20 } },
-
-    // window inner
-    { id: 'r7', type: 'circle', tag: 'circle', attrs: { cx:110, cy:100, r:10 } },
-
-    // engine base
-    { id: 'r8', type: 'rect', tag: 'rect', attrs: { x:90, y:180, width:40, height:10 } },
-
-    // flame center
-    { id: 'r9', type: 'circle', tag: 'circle', attrs: { cx:110, cy:205, r:14 } },
-
-    // flame left
-    { id: 'r10', type: 'triangle', tag: 'polygon', attrs: { points:'95,190 110,220 105,190' } },
-
-    // flame right
-    { id: 'r11', type: 'triangle', tag: 'polygon', attrs: { points:'125,190 110,220 115,190' } },
-
-    // small body panel
-    { id: 'r12', type: 'rect', tag: 'rect', attrs: { x:95, y:145, width:30, height:8 } }
-  ]
-},
-  {
-    name: 'Boat ⛵',
-    viewBox: '0 0 300 260',
-    extraClass: 'scene-large',
-    shapes: [
-      // hull (main body)
-      { id: 'b1',  type: 'rect',     tag: 'rect',    attrs: { x:10,  y:188, width:280, height:52 } },
-      // deck stripe
-      { id: 'b2',  type: 'rect',     tag: 'rect',    attrs: { x:22,  y:175, width:256, height:16 } },
-      // cabin / bridge
-      { id: 'b3',  type: 'rect',     tag: 'rect',    attrs: { x:88,  y:132, width:95,  height:46 } },
-      // chimney
-      { id: 'b4',  type: 'rect',     tag: 'rect',    attrs: { x:100, y:108, width:22,  height:27 } },
-      // mast
-      { id: 'b5',  type: 'rect',     tag: 'rect',    attrs: { x:130, y:22,  width:10,  height:155 } },
-      // main sail (right)
-      { id: 'b6',  type: 'triangle', tag: 'polygon', attrs: { points:'140,28 140,148 268,148' } },
-      // second sail (left)
-      { id: 'b7',  type: 'triangle', tag: 'polygon', attrs: { points:'130,52 130,148 22,148' } },
-      // flag at top of mast
-      { id: 'b8',  type: 'triangle', tag: 'polygon', attrs: { points:'130,22 130,5 172,14' } },
-      // pennant (small right)
-      { id: 'b9',  type: 'triangle', tag: 'polygon', attrs: { points:'140,60 140,44 170,52' } },
-      // porthole 1
-      { id: 'b10', type: 'circle',   tag: 'circle',  attrs: { cx:48,  cy:206, r:15 } },
-      // porthole 2
-      { id: 'b11', type: 'circle',   tag: 'circle',  attrs: { cx:152, cy:206, r:15 } },
-      // porthole 3
-      { id: 'b12', type: 'circle',   tag: 'circle',  attrs: { cx:252, cy:206, r:15 } },
-      // life ring
-      { id: 'b13', type: 'circle',   tag: 'circle',  attrs: { cx:252, cy:152, r:15 } },
-      // sun
-      { id: 'b14', type: 'circle',   tag: 'circle',  attrs: { cx:265, cy:38,  r:26  } },
-    ]
-  },
-];
-
+let currentHW       = 0;
+let activeScenes    = [];
 let currentSceneIdx = 0;
-let stars = 0;
-let shapeStates = {};
-let selectedTool = null; // 'circle' | 'rect' | 'triangle' | null
+let stars           = 0;
+let shapeStates     = {};
+let selectedTool    = null; // 'circle' | 'rect' | 'triangle' | null
+
+function loadHomework(idx) {
+  currentHW       = idx;
+  activeScenes    = HOMEWORKS[idx].scenes;
+  currentSceneIdx = 0;
+  stars           = 0;
+  document.getElementById('star-count').textContent = '0';
+  document.getElementById('fireworks-overlay').classList.remove('show');
+  renderSidebar(HOMEWORKS, currentHW, loadHomework);
+  renderScene();
+}
 
 function selectTool(type, el) {
   SFX.select();
@@ -387,7 +253,7 @@ function selectTool(type, el) {
 function buildTabs() {
   const tabsEl = document.getElementById('scene-tabs');
   tabsEl.innerHTML = '';
-  SCENES.forEach((sc, i) => {
+  activeScenes.forEach((sc, i) => {
     const btn = document.createElement('button');
     btn.className = 'scene-tab' + (i === currentSceneIdx ? ' active' : '');
     btn.textContent = sc.name;
@@ -402,7 +268,7 @@ function renderScene() {
   selectedTool = null;
   document.querySelectorAll('.legend-item').forEach(i => i.classList.remove('selected'));
   document.getElementById('instruction').textContent = '👆 First tap a shape below to pick your color!';
-  const scene = SCENES[currentSceneIdx];
+  const scene = activeScenes[currentSceneIdx];
   const area = document.getElementById('drawing-area');
   area.innerHTML = '';
 
@@ -470,7 +336,7 @@ function colorShape(id, type, el) {
 }
 
 function checkAll() {
-  const scene = SCENES[currentSceneIdx];
+  const scene = activeScenes[currentSceneIdx];
   const allColored = scene.shapes.every(sh => shapeStates[sh.id] && shapeStates[sh.id].colored);
 
   if (!allColored) {
@@ -502,7 +368,7 @@ function showFireworks() {
   SFX.celebrate();
   const overlay = document.getElementById('fireworks-overlay');
   overlay.classList.add('show');
-  document.getElementById('fw-msg').textContent = `🎨 ${SCENES[currentSceneIdx].name} — Perfect! ⭐`;
+  document.getElementById('fw-msg').textContent = `🎨 ${activeScenes[currentSceneIdx].name} — Perfect! ⭐`;
   spawnFireworks();
 }
 
@@ -523,7 +389,7 @@ function spawnFireworks() {
 
 function nextScene() {
   document.getElementById('fireworks-overlay').classList.remove('show');
-  currentSceneIdx = (currentSceneIdx + 1) % SCENES.length;
+  currentSceneIdx = (currentSceneIdx + 1) % activeScenes.length;
   renderScene();
 }
 
@@ -552,6 +418,9 @@ function clearFeedback() {
 }
 
 // Init
+HOMEWORKS = HOMEWORK_CONFIG;
+activeScenes = HOMEWORKS[0].scenes;
+renderSidebar(HOMEWORKS, currentHW, loadHomework);
 renderScene();
 </script>
 </body>

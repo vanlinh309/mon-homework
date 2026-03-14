@@ -1,0 +1,11 @@
+[
+  {
+    "label": "HW 1",
+    "blocks": [
+      { "emoji": "🚗", "count": 6 },
+      { "emoji": "🐶", "count": 8 },
+      { "emoji": "🍕", "count": 5 },
+      { "emoji": "🌸", "count": 7 }
+    ]
+  }
+]

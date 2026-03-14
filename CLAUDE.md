@@ -20,6 +20,8 @@ Opens directly from `file://` or a simple HTTP server. Works fully offline.
 Homework/
 ├── index.html                  # Home screen — 5 lesson cards
 ├── style.css                   # Shared styles, animations, color palette
+├── sidebar.js                  # Shared toggleSidebar() + renderSidebar()
+├── sounds.js                   # Web Audio API sound effects (SFX.click/correct/wrong/etc.)
 ├── lesson1-shadow.html         # Shadow matching
 ├── lesson2-maze.html           # Maze path drawing
 ├── lesson3-patterns.html       # Pattern recognition
@@ -132,16 +134,71 @@ function showFeedback(msg, type) {  // type: 'correct' | 'wrong'
 
 ---
 
+## Multiple Homework Assignments (Sidebar)
+
+Every lesson has a collapsible left sidebar that lets Mon navigate between 10+ homework sets. The sidebar is collapsed by default (28px strip showing `›` arrow) and expands to 160px, pushing content right.
+
+### How it works
+- Each lesson has a `HOMEWORKS` array at the top of the file — one entry per homework assignment
+- `sidebar.js` provides `toggleSidebar()` and `renderSidebar(homeworks, currentIdx, onSelect)`
+- Every lesson body uses `class="lesson-body"` and wraps content in `.app-layout` → `.sidebar` + `.lesson-scroll`
+
+### HOMEWORKS config pattern per lesson
+
+| Lesson | Config shape | Example |
+|--------|-------------|---------|
+| 1 Shadow | `{ pairs: [...names], prefix: '' }` | `{ pairs: ['bus','car'], prefix: '' }` |
+| 2 Maze | `{ image: 'assets/lesson2/maze.png' }` | one entry per maze image |
+| 3 Patterns | `{ rounds: [...round objects] }` | 3+ rounds per homework |
+| 4 Counting | `{ blocks: [{emoji, count}, ...] }` | 4 blocks per homework |
+| 5 Coloring | `{ scenes: [...scene objects] }` | 3–4 scenes per homework |
+
+### Adding a new homework to Lesson 1
+1. Name image files: `as2_cat.png` and `as2_cat_shadow.png` → drop into `assets/lesson1/`
+2. Add to HOMEWORKS array in `lesson1-shadow.html`:
+   ```js
+   { pairs: ['cat','dog','fish'], prefix: 'as2' }
+   ```
+3. Open in browser — new "HW 2" appears in sidebar automatically
+
+### Adding a new homework to Lesson 2
+Drop a new maze image into `assets/lesson2/`, then add to HOMEWORKS in `lesson2-maze.html`:
+```js
+{ image: 'assets/lesson2/maze2.png' }
+```
+
+### Sidebar HTML template (in every lesson)
+```html
+<body class="lesson-body">
+<div class="top-bar">...</div>
+<div class="app-layout">
+  <div class="sidebar" id="sidebar">
+    <button class="sidebar-toggle" id="sidebar-toggle" onclick="toggleSidebar()">›</button>
+    <div class="sidebar-inner">
+      <div class="sidebar-title">Homework</div>
+      <div class="hw-list" id="hw-list"></div>
+    </div>
+  </div>
+  <div class="lesson-scroll [no-scroll]">
+    <main>...</main>
+  </div>
+</div>
+```
+Use `no-scroll` on `.lesson-scroll` for lessons that should not scroll vertically (Lesson 1, Lesson 2).
+
+---
+
 ## Adding a New Lesson
 1. Create `lessonN-name.html` following the existing lesson structure
 2. Add a card to `index.html` in `.home-grid`
-3. Include `<link rel="stylesheet" href="style.css">` and the shared top-bar/star-bar/fireworks pattern
-4. Use `pointerdown` events, not `click` (better touch response)
-5. Minimum button/tap size: 60×60px
+3. Include `<link rel="stylesheet" href="style.css">`, `<script src="sounds.js"></script>`, `<script src="sidebar.js"></script>`
+4. Use `class="lesson-body"` on body and the `.app-layout` sidebar wrapper
+5. Use `pointerdown` events, not `click` (better touch response)
+6. Minimum button/tap size: 60×60px
 
 ## Adding New Assets
-- **Lesson 1 shadow pairs:** drop `{name}.png` + `{name}_shadow.png` into `assets/lesson1/`, then add `{ id: 'name', label: 'Name' }` to `ALL_PAIRS` in `lesson1-shadow.html`
-- **Lesson 2 maze:** replace `assets/lesson2/animal_maze.png` (or add multiple and build a selector)
+- **Lesson 1 shadow pairs:** drop `{prefix}_{name}.png` + `{prefix}_{name}_shadow.png` into `assets/lesson1/`, add a new HOMEWORKS entry with matching `prefix` and `pairs`
+- **Lesson 2 maze:** add new image to `assets/lesson2/`, add a new HOMEWORKS entry with `{ image: '...' }`
 - **Lesson 4 objects:** currently emoji-based; to use real images swap `.obj-item` text content for `<img>` tags
 
 ---

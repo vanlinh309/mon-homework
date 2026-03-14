@@ -6,6 +6,8 @@
   <title>Pattern Power 🔴</title>
   <link rel="stylesheet" href="style.css">
   <script src="sounds.js"></script>
+  <script src="sidebar.js"></script>
+  <script src="assignments/lesson3.js"></script>
   <style>
     body { background: linear-gradient(135deg, #FFF9F0, #FFFDE7); }
 
@@ -123,15 +125,11 @@
       color: #888;
     }
 
-    .next-btn {
-      display: none;
-    }
-    .next-btn.show {
-      display: inline-flex;
-    }
+    .next-btn { display: none; }
+    .next-btn.show { display: inline-flex; }
   </style>
 </head>
-<body>
+<body class="lesson-body">
 
 <div class="top-bar">
   <button class="btn-home" onclick="location.href='index.html'">🏠 Home</button>
@@ -139,22 +137,38 @@
   <div class="star-bar">⭐ <span id="star-count">0</span></div>
 </div>
 
-<main>
-  <div class="round-label" id="round-label">Round 1 of 8</div>
-  <div class="progress-bar-wrap">
-    <div class="progress-bar-fill" id="progress-bar" style="width:0%"></div>
+<div class="app-layout">
+
+  <!-- Sidebar -->
+  <div class="sidebar" id="sidebar">
+    <button class="sidebar-toggle" id="sidebar-toggle" onclick="toggleSidebar()">›</button>
+    <div class="sidebar-inner">
+      <div class="sidebar-title">Homework</div>
+      <div class="hw-list" id="hw-list"></div>
+    </div>
   </div>
 
-  <div class="instruction" id="instruction">What comes next? Find the missing piece! 🔍</div>
+  <!-- Main content -->
+  <div class="lesson-scroll">
+    <main>
+      <div class="round-label" id="round-label">Round 1 of 3</div>
+      <div class="progress-bar-wrap">
+        <div class="progress-bar-fill" id="progress-bar" style="width:0%"></div>
+      </div>
 
-  <div class="pattern-row" id="pattern-row"></div>
+      <div class="instruction" id="instruction">What comes next? Find the missing piece! 🔍</div>
 
-  <div class="feedback" id="feedback"></div>
+      <div class="pattern-row" id="pattern-row"></div>
 
-  <div class="choices" id="choices"></div>
+      <div class="feedback" id="feedback"></div>
 
-  <button class="btn btn-blue next-btn" id="next-btn" onclick="nextRound()">Next ➡️</button>
-</main>
+      <div class="choices" id="choices"></div>
+
+      <button class="btn btn-blue next-btn" id="next-btn" onclick="nextRound()">Next ➡️</button>
+    </main>
+  </div>
+
+</div><!-- end app-layout -->
 
 <!-- Fireworks overlay -->
 <div id="fireworks-overlay">
@@ -165,49 +179,33 @@
 </div>
 
 <script>
-// ---- Shape definitions ----
-const SHAPES = {
-  '🔴': 'red circle',
-  '🔵': 'blue circle',
-  '🟡': 'yellow circle',
-  '🟢': 'green circle',
-  '🟠': 'orange circle',
-  '🟣': 'purple circle',
-  '🔶': 'orange diamond',
-  '🔷': 'blue diamond',
-  '⭐': 'star',
-  '❤️': 'heart',
-  '🌟': 'glow star',
-  '🍎': 'apple',
-  '🍊': 'orange',
-  '🍋': 'lemon',
-};
+// Assignments are loaded from assignments/lesson3.json
+// Requires a local HTTP server (not file://)
+let HOMEWORKS = [];
 
-// Rounds: each has a pattern sequence with one '?' slot
-const ROUNDS = [
-  // Level 1: AB patterns  
-  { pattern: ['⭐','❤️','⭐','❤️','⭐','?'], answer: '❤️', choices: ['⭐','❤️','🌟'], hint: 'Star, Heart, Star, Heart...' },
-  { pattern: ['🍎','🍊','🔵','🍎','?','🔵'], answer: '🍊', choices: ['🍎','🍊','🔵'], hint: 'Apple, Orange, Lemon...' },  
-  { pattern: ['🌳','☀️','?','🌳','☀️','☀️'], answer: '☀️', choices: ['🌳','☀️','🌙'], hint: 'Tree, Sun, Moon...' },
-];
-
+let currentHW    = 0;
 let currentRound = 0;
-let stars = 0;
-let answered = false;
+let stars        = 0;
+let answered     = false;
+let activeRounds = [];
 
-function init() {
+function loadHomework(idx) {
+  currentHW    = idx;
   currentRound = 0;
-  stars = 0;
-  answered = false;
+  stars        = 0;
+  answered     = false;
+  activeRounds = HOMEWORKS[idx].rounds;
   document.getElementById('star-count').textContent = '0';
+  document.getElementById('fireworks-overlay').classList.remove('show');
+  renderSidebar(HOMEWORKS, currentHW, loadHomework);
   showRound();
 }
 
 function showRound() {
   answered = false;
-  const round = ROUNDS[currentRound];
-  document.getElementById('round-label').textContent = `Round ${currentRound + 1} of ${ROUNDS.length}`;
-  document.getElementById('progress-bar').style.width = `${(currentRound / ROUNDS.length) * 100}%`;
+  const round = activeRounds[currentRound];
+  document.getElementById('round-label').textContent = `Round ${currentRound + 1} of ${activeRounds.length}`;
+  document.getElementById('progress-bar').style.width = `${(currentRound / activeRounds.length) * 100}%`;
   document.getElementById('next-btn').classList.remove('show');
 
   // Build pattern row
@@ -231,7 +229,6 @@ function showRound() {
   // Build choices
   const choicesEl = document.getElementById('choices');
   choicesEl.innerHTML = '';
-  // Shuffle choices
   const shuffled = [...round.choices].sort(() => Math.random() - 0.5);
   shuffled.forEach(sym => {
     const btn = document.createElement('button');
@@ -250,7 +247,7 @@ function handleChoice(sym, btn) {
   answered = true;
   SFX.click();
 
-  const round = ROUNDS[currentRound];
+  const round = activeRounds[currentRound];
   const slot = document.getElementById('missing-slot');
 
   if (sym === round.answer) {
@@ -280,7 +277,7 @@ function showFeedback(msg, type) {
   const el = document.getElementById('feedback');
   el.textContent = msg;
   el.className = `feedback ${type} show`;
-  if (type === 'correct') return; // stays until next round
+  if (type === 'correct') return;
   setTimeout(() => { el.classList.remove('show'); }, 1500);
 }
 
@@ -292,7 +289,7 @@ function clearFeedback() {
 
 function nextRound() {
   currentRound++;
-  if (currentRound >= ROUNDS.length) {
+  if (currentRound >= activeRounds.length) {
     showFireworks();
   } else {
     showRound();
@@ -330,10 +327,14 @@ function spawnFireworks() {
 
 function restartGame() {
   document.getElementById('fireworks-overlay').classList.remove('show');
-  init();
+  loadHomework(currentHW);
 }
 
-init();
+// Init
+HOMEWORKS = HOMEWORK_CONFIG;
+activeRounds = HOMEWORKS[0].rounds;
+renderSidebar(HOMEWORKS, currentHW, loadHomework);
+showRound();
 </script>
 </body>
 </html>

@@ -6,24 +6,25 @@
   <title>Shadow Match 🚌</title>
   <link rel="stylesheet" href="style.css">
   <script src="sounds.js"></script>
+  <script src="sidebar.js"></script>
+  <script src="assignments/lesson1.js"></script>
   <style>
-    body { background: linear-gradient(135deg, #FFF9F0, #F5F0FF); overflow: hidden; }
+    body { background: linear-gradient(135deg, #FFF9F0, #F5F0FF); }
 
     main {
       max-width: 960px;
-      margin: 0 auto;
+      margin: 0 20px;
       padding: 10px 16px;
       display: flex;
       flex-direction: column;
       align-items: center;
       gap: 10px;
-      height: calc(100vh - 60px);
+      height: 100%;
     }
 
     .instruction { font-size: 1.1rem; color: #555; text-align: center; }
     .round-label  { font-size: 1rem; color: #888; }
 
-    /* Game container — holds both columns + canvas overlay */
     .game-wrap {
       position: relative;
       width: 100%;
@@ -32,21 +33,22 @@
       align-items: stretch;
       min-height: 0;
     }
-
-    /* Two columns */
     .col {
       flex: 1;
       display: flex;
       flex-direction: column;
       justify-content: space-around;
-      align-items: center;
-      padding: 8px 4px;
       gap: 8px;
     }
-
-    /* Each image box — fixed display size so all images look the same */
+    #col-objects {
+      align-items: flex-start;
+      padding: 8px 4px 8px 12px;
+    }
+    #col-shadows {
+      align-items: flex-end;
+      padding: 8px 12px 8px 4px;
+    }
     .item-box {
-      /* Fixed size: every image is forced into this box */
       width: 180px;
       height: 140px;
       display: flex;
@@ -57,40 +59,22 @@
       background: transparent;
       position: relative;
       touch-action: none;
-      transition: border-color 0.2s, background 0.2s, box-shadow 0.2s;
+      transition: box-shadow 0.2s;
       flex-shrink: 0;
     }
-
-    /* The actual <img> inside — fills the box uniformly */
     .item-box img {
       width: 100%;
       height: 100%;
-      object-fit: contain;   /* scale to fit, keep aspect ratio, no crop */
+      object-fit: contain;
       border-radius: 10px;
       display: block;
-      pointer-events: none;  /* drag events go to the box, not the image */
+      pointer-events: none;
     }
-
-    /* Object (left) items — coloured, draggable */
-    .object-item {
-      cursor: grab;
-    }
+    .object-item { cursor: grab; }
     .object-item:active { cursor: grabbing; }
+    .item-box.highlight       { box-shadow: 0 0 0 4px rgba(47,134,235,0.35); }
+    .item-box.matched-correct { box-shadow: 0 0 0 4px rgba(46,213,115,0.5); animation: flash-green 0.6s ease; }
 
-    /* Shadow (right) items */
-    .shadow-item {
-    }
-
-    /* States */
-    .item-box.highlight {
-      box-shadow: 0 0 0 4px rgba(47,134,235,0.35);
-    }
-    .item-box.matched-correct {
-      box-shadow: 0 0 0 4px rgba(46,213,115,0.5);
-      animation: flash-green 0.6s ease;
-    }
-
-    /* Canvas overlay for drawn lines */
     #line-canvas {
       position: absolute;
       inset: 0;
@@ -99,22 +83,15 @@
       pointer-events: none;
       z-index: 10;
     }
-
     .feedback { margin: 0; }
-
     .next-btn { display: none; }
     .next-btn.show { display: inline-flex; }
 
-    /* Responsive: shrink boxes on small screens */
-    @media (max-width: 600px) {
-      .item-box { width: 120px; height: 95px; }
-    }
-    @media (max-width: 400px) {
-      .item-box { width: 95px; height: 75px; }
-    }
+    @media (max-width: 600px) { .item-box { width: 120px; height: 95px; } }
+    @media (max-width: 400px) { .item-box { width: 95px; height: 75px; } }
   </style>
 </head>
-<body>
+<body class="lesson-body">
 
 <div class="top-bar">
   <button class="btn-home" onclick="location.href='index.html'">🏠 Home</button>
@@ -122,19 +99,35 @@
   <div class="star-bar">⭐ <span id="star-count">0</span></div>
 </div>
 
-<main>
-  <div class="instruction">Drag a line from the picture to its shadow! 🖊️</div>
-  <div class="round-label" id="round-label">Round 1 of 3</div>
-  <div class="feedback" id="feedback"></div>
+<div class="app-layout">
 
-  <div class="game-wrap" id="game-wrap">
-    <canvas id="line-canvas"></canvas>
-    <div class="col" id="col-objects"></div>
-    <div class="col" id="col-shadows"></div>
+  <!-- Sidebar -->
+  <div class="sidebar" id="sidebar">
+    <button class="sidebar-toggle" id="sidebar-toggle" onclick="toggleSidebar()">›</button>
+    <div class="sidebar-inner">
+      <div class="sidebar-title">Homework</div>
+      <div class="hw-list" id="hw-list"></div>
+    </div>
   </div>
 
-  <button class="btn btn-blue next-btn" id="next-btn" onclick="nextRound()">Next ➡️</button>
-</main>
+  <!-- Main content -->
+  <div class="lesson-scroll no-scroll">
+    <main>
+      <div class="instruction">Drag a line from the picture to its shadow! 🖊️</div>
+      <div class="round-label" id="round-label">Round 1 of 3</div>
+      <div class="feedback" id="feedback"></div>
+
+      <div class="game-wrap" id="game-wrap">
+        <canvas id="line-canvas"></canvas>
+        <div class="col" id="col-objects"></div>
+        <div class="col" id="col-shadows"></div>
+      </div>
+
+      <button class="btn btn-blue next-btn" id="next-btn" onclick="nextRound()">Next ➡️</button>
+    </main>
+  </div>
+
+</div><!-- end app-layout -->
 
 <!-- Fireworks -->
 <div id="fireworks-overlay">
@@ -145,53 +138,60 @@
 </div>
 
 <script>
-// All 5 image pairs from assets/lesson1/
-const ALL_PAIRS = [
-  { id: 'bus',        label: 'Bus'        },
-  { id: 'car',        label: 'Car'        },
-  { id: 'helicopter', label: 'Helicopter' },
-  { id: 'taxi',       label: 'Taxi'       },
-  { id: 'truck',      label: 'Truck'      },
-];
+// Assignments are loaded from assignments/lesson1.json
+// Requires a local HTTP server (not file://)
+let HOMEWORKS = [];
 
-function imgPath(id, isShadow) {
-  return `assets/lesson1/${id}${isShadow ? '_shadow' : ''}.png`;
+function imgPath(prefix, name, isShadow) {
+  const p = prefix ? prefix + '_' : '';
+  return `assets/lesson1/${p}${name}${isShadow ? '_shadow' : ''}.png`;
 }
 
-const TOTAL_ROUNDS = 3;   // play the full set 3 times (reshuffled each time)
+const TOTAL_ROUNDS = 3;
+let currentHW    = 0;
 let currentRound = 0;
-let stars = 0;
-let pairs = [];
-let shadowOrder = [];
-let matched = {};
+let stars        = 0;
+let pairs        = [];
+let shadowOrder  = [];
+let matched      = {};
 let totalMatched = 0;
-
-// Drawing state
-let dragging = false;
-let dragFromId = null;
-let dragStart = { x: 0, y: 0 };
+let dragging     = false;
+let dragFromId   = null;
+let dragStart    = { x: 0, y: 0 };
 
 const canvas = document.getElementById('line-canvas');
-const ctx = canvas.getContext('2d');
+const ctx    = canvas.getContext('2d');
 
 function shuffle(arr) { return [...arr].sort(() => Math.random() - 0.5); }
 
-// ---- Build a round ----
-function showRound() {
-  matched = {};
-  totalMatched = 0;
-  dragging = false;
-  dragFromId = null;
+// ---- Sidebar ----
+function loadHomework(idx) {
+  currentHW    = idx;
+  currentRound = 0;
+  stars        = 0;
+  document.getElementById('star-count').textContent = '0';
+  document.getElementById('fireworks-overlay').classList.remove('show');
+  renderSidebar(HOMEWORKS, currentHW, loadHomework);
+  showRound();
+}
 
-  pairs = shuffle(ALL_PAIRS);          // shuffled left column order
-  shadowOrder = shuffle(pairs.map(p => p.id)); // independent shuffle for right column
+// ---- Round logic ----
+function showRound() {
+  matched      = {};
+  totalMatched = 0;
+  dragging     = false;
+  dragFromId   = null;
+
+  const hw = HOMEWORKS[currentHW];
+  pairs       = shuffle(hw.pairs.map(name => ({ id: hw.prefix + name, name, label: name })));
+  shadowOrder = shuffle(pairs.map(p => p.id));
 
   document.getElementById('round-label').textContent =
     `Round ${currentRound + 1} of ${TOTAL_ROUNDS}`;
   document.getElementById('next-btn').classList.remove('show');
   clearFeedback();
 
-  // Left column — coloured objects
+  // Left column
   const colObj = document.getElementById('col-objects');
   colObj.innerHTML = '';
   pairs.forEach(p => {
@@ -200,25 +200,25 @@ function showRound() {
     box.id = 'obj-' + p.id;
     box.dataset.pairId = p.id;
     const img = document.createElement('img');
-    img.src = imgPath(p.id, false);
-    img.alt = p.label;
+    img.src = imgPath(hw.prefix, p.name, false);
+    img.alt = p.name;
     img.draggable = false;
     box.appendChild(img);
     colObj.appendChild(box);
   });
 
-  // Right column — shadow images (greyscale via CSS)
+  // Right column (shadows)
   const colSh = document.getElementById('col-shadows');
   colSh.innerHTML = '';
   shadowOrder.forEach(id => {
-    const p = ALL_PAIRS.find(x => x.id === id);
+    const p = pairs.find(x => x.id === id);
     const box = document.createElement('div');
     box.className = 'item-box shadow-item';
     box.id = 'shd-' + id;
     box.dataset.pairId = id;
     const img = document.createElement('img');
-    img.src = imgPath(id, true);
-    img.alt = p.label + ' shadow';
+    img.src = imgPath(hw.prefix, p.name, true);
+    img.alt = p.name + ' shadow';
     img.draggable = false;
     box.appendChild(img);
     colSh.appendChild(box);
@@ -234,38 +234,23 @@ function resizeCanvas() {
   canvas.width  = wrap.offsetWidth;
   canvas.height = wrap.offsetHeight;
 }
-
 function centerOf(el) {
   const wrapRect = document.getElementById('game-wrap').getBoundingClientRect();
   const r = el.getBoundingClientRect();
-  return {
-    x: r.left - wrapRect.left + r.width  / 2,
-    y: r.top  - wrapRect.top  + r.height / 2,
-  };
+  return { x: r.left - wrapRect.left + r.width/2, y: r.top - wrapRect.top + r.height/2 };
 }
-
 function drawLine(s, e, color, width) {
-  ctx.beginPath();
-  ctx.moveTo(s.x, s.y);
-  ctx.lineTo(e.x, e.y);
-  ctx.strokeStyle = color;
-  ctx.lineWidth   = width;
-  ctx.lineCap     = 'round';
-  ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(s.x, s.y); ctx.lineTo(e.x, e.y);
+  ctx.strokeStyle = color; ctx.lineWidth = width; ctx.lineCap = 'round'; ctx.stroke();
 }
-
 function redrawLines(tempStart, tempEnd) {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
-  // Permanent green lines for matched pairs
   Object.keys(matched).forEach(id => {
     const o = document.getElementById('obj-' + id);
     const s = document.getElementById('shd-' + id);
     if (o && s) drawLine(centerOf(o), centerOf(s), '#2ED573', 5);
   });
-  // Temporary blue line while dragging
-  if (tempStart && tempEnd) {
-    drawLine(tempStart, tempEnd, 'rgba(47,134,235,0.75)', 5);
-  }
+  if (tempStart && tempEnd) drawLine(tempStart, tempEnd, 'rgba(47,134,235,0.75)', 5);
 }
 
 // ---- Pointer events ----
@@ -274,13 +259,10 @@ const wrap = document.getElementById('game-wrap');
 wrap.addEventListener('pointerdown', e => {
   const target = e.target.closest('.object-item');
   if (!target || matched[target.dataset.pairId]) return;
-
-  SFX.click();   // tap on image
-  SFX.drag();    // drag starts
-
-  dragging    = true;
-  dragFromId  = target.dataset.pairId;
-  dragStart   = centerOf(target);
+  SFX.click(); SFX.drag();
+  dragging   = true;
+  dragFromId = target.dataset.pairId;
+  dragStart  = centerOf(target);
   target.classList.add('highlight');
   wrap.setPointerCapture(e.pointerId);
   e.preventDefault();
@@ -289,19 +271,16 @@ wrap.addEventListener('pointerdown', e => {
 wrap.addEventListener('pointermove', e => {
   if (!dragging) return;
   const wRect = wrap.getBoundingClientRect();
-  const cur = { x: e.clientX - wRect.left, y: e.clientY - wRect.top };
-  redrawLines(dragStart, cur);
+  redrawLines(dragStart, { x: e.clientX - wRect.left, y: e.clientY - wRect.top });
   e.preventDefault();
 });
 
 wrap.addEventListener('pointerup', e => {
   if (!dragging) return;
   dragging = false;
-
   const fromEl = document.getElementById('obj-' + dragFromId);
   if (fromEl) fromEl.classList.remove('highlight');
 
-  // Hit-test: which shadow box is under the pointer?
   const x = e.clientX, y = e.clientY;
   let hitId = null;
   document.querySelectorAll('.shadow-item').forEach(el => {
@@ -310,7 +289,6 @@ wrap.addEventListener('pointerup', e => {
   });
 
   if (hitId === dragFromId) {
-    // ✅ Correct match
     SFX.correct();
     matched[dragFromId] = true;
     totalMatched++;
@@ -320,7 +298,6 @@ wrap.addEventListener('pointerup', e => {
     document.getElementById('star-count').textContent = stars;
     showFeedback('Great job! ⭐', 'correct');
     redrawLines();
-
     if (totalMatched === pairs.length) {
       setTimeout(() => {
         SFX.celebrate();
@@ -329,11 +306,8 @@ wrap.addEventListener('pointerup', e => {
       }, 400);
     }
   } else if (hitId) {
-    // ❌ Wrong — flash red line then remove
     SFX.wrong();
     const toEl = document.getElementById('shd-' + hitId);
-    redrawLines(dragStart, centerOf(toEl));
-    ctx.strokeStyle = '#FF4757';
     redrawLines();
     drawLine(dragStart, centerOf(toEl), '#FF4757', 5);
     showFeedback('Try again! 🙈', 'wrong');
@@ -341,7 +315,6 @@ wrap.addEventListener('pointerup', e => {
   } else {
     redrawLines();
   }
-
   dragFromId = null;
 });
 
@@ -354,31 +327,26 @@ function showFeedback(msg, type) {
 }
 function clearFeedback() {
   const el = document.getElementById('feedback');
-  el.textContent = '';
-  el.className = 'feedback';
+  el.textContent = ''; el.className = 'feedback';
 }
 
 // ---- Navigation ----
 function nextRound() {
   currentRound++;
   if (currentRound >= TOTAL_ROUNDS) {
-    document.getElementById('fw-msg').textContent =
-      `🎉 You matched everything! ${stars} stars! 🌟`;
+    document.getElementById('fw-msg').textContent = `🎉 You matched everything! ${stars} stars! 🌟`;
     document.getElementById('fireworks-overlay').classList.add('show');
     spawnFireworks();
   } else {
     showRound();
   }
 }
-
 function restartGame() {
   document.getElementById('fireworks-overlay').classList.remove('show');
-  currentRound = 0;
-  stars = 0;
+  currentRound = 0; stars = 0;
   document.getElementById('star-count').textContent = '0';
   showRound();
 }
-
 function spawnFireworks() {
   const overlay = document.getElementById('fireworks-overlay');
   const colors = ['#FF4757','#FFD700','#2ED573','#2F86EB','#A855F7','#FF69B4'];
@@ -396,6 +364,9 @@ function spawnFireworks() {
 
 window.addEventListener('resize', () => { resizeCanvas(); redrawLines(); });
 
+// Init
+HOMEWORKS = HOMEWORK_CONFIG;
+renderSidebar(HOMEWORKS, currentHW, loadHomework);
 showRound();
 </script>
 </body>

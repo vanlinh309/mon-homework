@@ -216,6 +216,129 @@ html, body {
   animation: firework 1s ease forwards;
 }
 
+/* ============================================
+   Homework Sidebar Layout
+   ============================================ */
+
+/* Body becomes a flex column so sidebar fills remaining height */
+.lesson-body {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  overflow: hidden;
+}
+
+/* Row that holds sidebar + main content */
+.app-layout {
+  display: flex;
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+}
+
+/* ---- Sidebar ---- */
+.sidebar {
+  width: 28px;
+  min-width: 28px;
+  background: #fff;
+  border-right: 2px solid #eee;
+  display: flex;
+  flex-direction: column;
+  flex-shrink: 0;
+  transition: width 0.25s ease;
+  overflow: hidden;
+  z-index: 50;
+}
+.sidebar.open {
+  width: 160px;
+  min-width: 160px;
+}
+
+/* Toggle arrow button — always visible at 28px */
+.sidebar-toggle {
+  width: 28px;
+  min-width: 28px;
+  height: 48px;
+  border: none;
+  background: var(--color-blue);
+  color: #fff;
+  font-size: 1.1rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  touch-action: manipulation;
+  transition: background 0.15s;
+  align-self: flex-start;
+}
+.sidebar-toggle:active { background: #1a6fd4; }
+
+/* Inner content — fades in when open */
+.sidebar-inner {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding: 6px 0 12px;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.2s ease;
+  min-width: 160px;
+}
+.sidebar.open .sidebar-inner {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.sidebar-title {
+  font-size: 0.7rem;
+  font-weight: bold;
+  color: #aaa;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  padding: 6px 12px 8px;
+  white-space: nowrap;
+}
+
+.hw-item {
+  display: block;
+  width: 100%;
+  padding: 11px 14px;
+  border: none;
+  background: none;
+  font-family: var(--font-main);
+  font-size: 0.95rem;
+  color: #555;
+  cursor: pointer;
+  text-align: left;
+  white-space: nowrap;
+  touch-action: manipulation;
+  border-left: 3px solid transparent;
+  transition: background 0.12s, color 0.12s;
+  min-height: 44px;
+}
+.hw-item:hover   { background: #f0f5ff; }
+.hw-item.active  {
+  background: #E8F4FF;
+  color: var(--color-blue);
+  border-left-color: var(--color-blue);
+  font-weight: bold;
+}
+
+/* Scrollable lesson area next to sidebar */
+.lesson-scroll {
+  flex: 1;
+  min-width: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+/* Maze needs no scroll — overridden inline */
+.lesson-scroll.no-scroll {
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
 /* ---- Responsive ---- */
 @media (max-width: 600px) {
   .top-bar h1 { font-size: 1.1rem; }

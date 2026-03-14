@@ -1,0 +1,82 @@
+[
+  {
+    "label": "HW 1",
+    "scenes": [
+      {
+        "name": "House 🏠",
+        "shapes": [
+          { "id": "s1", "type": "rect",     "tag": "rect",    "attrs": { "x": 60,  "y": 100, "width": 120, "height": 90 } },
+          { "id": "s2", "type": "triangle", "tag": "polygon", "attrs": { "points": "40,105 120,30 200,105" } },
+          { "id": "s3", "type": "rect",     "tag": "rect",    "attrs": { "x": 100, "y": 140, "width": 40,  "height": 50 } },
+          { "id": "s4", "type": "circle",   "tag": "circle",  "attrs": { "cx": 82,  "cy": 130, "r": 16 } },
+          { "id": "s5", "type": "circle",   "tag": "circle",  "attrs": { "cx": 158, "cy": 130, "r": 16 } },
+          { "id": "s6", "type": "circle",   "tag": "circle",  "attrs": { "cx": 30,  "cy": 35,  "r": 22 } }
+        ]
+      },
+      {
+        "name": "Train 🚂",
+        "shapes": [
+          { "id": "t1",  "type": "rect",     "tag": "rect",    "attrs": { "x": 20,  "y": 80,  "width": 180, "height": 70 } },
+          { "id": "t2",  "type": "triangle", "tag": "polygon", "attrs": { "points": "200,80 230,115 200,150" } },
+          { "id": "t3",  "type": "rect",     "tag": "rect",    "attrs": { "x": 140, "y": 45,  "width": 65,  "height": 45 } },
+          { "id": "t4",  "type": "triangle", "tag": "polygon", "attrs": { "points": "135,45 175,15 215,45" } },
+          { "id": "t5",  "type": "rect",     "tag": "rect",    "attrs": { "x": 35,  "y": 45,  "width": 28,  "height": 40 } },
+          { "id": "t6",  "type": "rect",     "tag": "rect",    "attrs": { "x": 30,  "y": 35,  "width": 38,  "height": 12 } },
+          { "id": "t7",  "type": "circle",   "tag": "circle",  "attrs": { "cx": 40, "cy": 20,  "r": 8  } },
+          { "id": "t8",  "type": "circle",   "tag": "circle",  "attrs": { "cx": 55, "cy": 10,  "r": 10 } },
+          { "id": "t9",  "type": "circle",   "tag": "circle",  "attrs": { "cx": 70, "cy": 0,   "r": 12 } },
+          { "id": "t10", "type": "rect",     "tag": "rect",    "attrs": { "x": 150, "y": 55,  "width": 18,  "height": 18 } },
+          { "id": "t11", "type": "rect",     "tag": "rect",    "attrs": { "x": 175, "y": 55,  "width": 18,  "height": 18 } },
+          { "id": "t12", "type": "rect",     "tag": "rect",    "attrs": { "x": 40,  "y": 95,  "width": 25,  "height": 25 } },
+          { "id": "t13", "type": "rect",     "tag": "rect",    "attrs": { "x": 75,  "y": 95,  "width": 25,  "height": 25 } },
+          { "id": "t14", "type": "rect",     "tag": "rect",    "attrs": { "x": 110, "y": 95,  "width": 25,  "height": 25 } },
+          { "id": "t15", "type": "circle",   "tag": "circle",  "attrs": { "cx": 70, "cy": 160, "r": 24 } },
+          { "id": "t16", "type": "circle",   "tag": "circle",  "attrs": { "cx": 70, "cy": 160, "r": 10 } },
+          { "id": "t17", "type": "circle",   "tag": "circle",  "attrs": { "cx": 150,"cy": 160, "r": 24 } },
+          { "id": "t18", "type": "circle",   "tag": "circle",  "attrs": { "cx": 150,"cy": 160, "r": 10 } },
+          { "id": "t19", "type": "rect",     "tag": "rect",    "attrs": { "x": 70,  "y": 155, "width": 80,  "height": 8  } },
+          { "id": "t20", "type": "triangle", "tag": "polygon", "attrs": { "points": "200,150 230,150 215,175" } },
+          { "id": "t21", "type": "triangle", "tag": "polygon", "attrs": { "points": "185,150 205,150 195,175" } }
+        ]
+      },
+      {
+        "name": "Rocket 🚀",
+        "shapes": [
+          { "id": "r1",  "type": "rect",     "tag": "rect",    "attrs": { "x": 75,  "y": 60,  "width": 70,  "height": 120 } },
+          { "id": "r2",  "type": "rect",     "tag": "rect",    "attrs": { "x": 75,  "y": 120, "width": 70,  "height": 10  } },
+          { "id": "r3",  "type": "triangle", "tag": "polygon", "attrs": { "points": "75,60 110,5 145,60" } },
+          { "id": "r4",  "type": "triangle", "tag": "polygon", "attrs": { "points": "75,130 40,185 75,185" } },
+          { "id": "r5",  "type": "triangle", "tag": "polygon", "attrs": { "points": "145,130 180,185 145,185" } },
+          { "id": "r6",  "type": "circle",   "tag": "circle",  "attrs": { "cx": 110, "cy": 100, "r": 20 } },
+          { "id": "r7",  "type": "circle",   "tag": "circle",  "attrs": { "cx": 110, "cy": 100, "r": 10 } },
+          { "id": "r8",  "type": "rect",     "tag": "rect",    "attrs": { "x": 90,  "y": 180, "width": 40,  "height": 10  } },
+          { "id": "r9",  "type": "circle",   "tag": "circle",  "attrs": { "cx": 110, "cy": 205, "r": 14 } },
+          { "id": "r10", "type": "triangle", "tag": "polygon", "attrs": { "points": "95,190 110,220 105,190" } },
+          { "id": "r11", "type": "triangle", "tag": "polygon", "attrs": { "points": "125,190 110,220 115,190" } },
+          { "id": "r12", "type": "rect",     "tag": "rect",    "attrs": { "x": 95,  "y": 145, "width": 30,  "height": 8   } }
+        ]
+      },
+      {
+        "name": "Boat ⛵",
+        "viewBox": "0 0 300 260",
+        "extraClass": "scene-large",
+        "shapes": [
+          { "id": "b1",  "type": "rect",     "tag": "rect",    "attrs": { "x": 10,  "y": 188, "width": 280, "height": 52 } },
+          { "id": "b2",  "type": "rect",     "tag": "rect",    "attrs": { "x": 22,  "y": 175, "width": 256, "height": 16 } },
+          { "id": "b3",  "type": "rect",     "tag": "rect",    "attrs": { "x": 88,  "y": 132, "width": 95,  "height": 46 } },
+          { "id": "b4",  "type": "rect",     "tag": "rect",    "attrs": { "x": 100, "y": 108, "width": 22,  "height": 27 } },
+          { "id": "b5",  "type": "rect",     "tag": "rect",    "attrs": { "x": 130, "y": 22,  "width": 10,  "height": 155} },
+          { "id": "b6",  "type": "triangle", "tag": "polygon", "attrs": { "points": "140,28 140,148 268,148" } },
+          { "id": "b7",  "type": "triangle", "tag": "polygon", "attrs": { "points": "130,52 130,148 22,148" } },
+          { "id": "b8",  "type": "triangle", "tag": "polygon", "attrs": { "points": "130,22 130,5 172,14" } },
+          { "id": "b9",  "type": "triangle", "tag": "polygon", "attrs": { "points": "140,60 140,44 170,52" } },
+          { "id": "b10", "type": "circle",   "tag": "circle",  "attrs": { "cx": 48,  "cy": 206, "r": 15 } },
+          { "id": "b11", "type": "circle",   "tag": "circle",  "attrs": { "cx": 152, "cy": 206, "r": 15 } },
+          { "id": "b12", "type": "circle",   "tag": "circle",  "attrs": { "cx": 252, "cy": 206, "r": 15 } },
+          { "id": "b13", "type": "circle",   "tag": "circle",  "attrs": { "cx": 252, "cy": 152, "r": 15 } },
+          { "id": "b14", "type": "circle",   "tag": "circle",  "attrs": { "cx": 265, "cy": 38,  "r": 26 } }
+        ]
+      }
+    ]
+  }
+]

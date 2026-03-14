@@ -6,6 +6,8 @@
   <title>Count It Up! 🍎</title>
   <link rel="stylesheet" href="style.css">
   <script src="sounds.js"></script>
+  <script src="sidebar.js"></script>
+  <script src="assignments/lesson4.js"></script>
   <style>
     body { background: linear-gradient(135deg, #FFF9F0, #F0FFF4); }
 
@@ -155,7 +157,7 @@
     }
   </style>
 </head>
-<body>
+<body class="lesson-body">
 
 <div class="top-bar">
   <button class="btn-home" onclick="location.href='index.html'">🏠 Home</button>
@@ -163,11 +165,26 @@
   <div class="star-bar">⭐ <span id="star-count">0</span></div>
 </div>
 
-<main>
-  <div class="instruction">Tap each object to count it, then pick the right number! 🔢</div>
+<div class="app-layout">
 
-  <div class="blocks-grid" id="blocks-grid"></div>
-</main>
+  <!-- Sidebar -->
+  <div class="sidebar" id="sidebar">
+    <button class="sidebar-toggle" id="sidebar-toggle" onclick="toggleSidebar()">›</button>
+    <div class="sidebar-inner">
+      <div class="sidebar-title">Homework</div>
+      <div class="hw-list" id="hw-list"></div>
+    </div>
+  </div>
+
+  <!-- Main content -->
+  <div class="lesson-scroll">
+    <main>
+      <div class="instruction">Tap each object to count it, then pick the right number! 🔢</div>
+      <div class="blocks-grid" id="blocks-grid"></div>
+    </main>
+  </div>
+
+</div><!-- end app-layout -->
 
 <!-- Fireworks -->
 <div id="fireworks-overlay">
@@ -178,16 +195,25 @@
 </div>
 
 <script>
-// Fixed 4 blocks: [emoji, count]
-const BLOCKS = [
-  { emoji: '🚗', count: 6 },
-  { emoji: '🐶', count: 8 },
-  { emoji: '🍕', count: 5 },
-  { emoji: '🌸', count: 7 },
-];
+// Assignments are loaded from assignments/lesson4.json
+// Requires a local HTTP server (not file://)
+let HOMEWORKS = [];
 
-let stars = 0;
+let currentHW  = 0;
+let stars      = 0;
 let solvedCount = 0;
+let activeBlocks = [];
+
+function loadHomework(idx) {
+  currentHW    = idx;
+  stars        = 0;
+  solvedCount  = 0;
+  activeBlocks = HOMEWORKS[idx].blocks;
+  document.getElementById('star-count').textContent = '0';
+  document.getElementById('fireworks-overlay').classList.remove('show');
+  renderSidebar(HOMEWORKS, currentHW, loadHomework);
+  buildAll();
+}
 
 function generateChoices(correct) {
   const pool = new Set([correct]);
@@ -256,7 +282,7 @@ function buildBlock(block, index) {
         stars++;
         document.getElementById('star-count').textContent = stars;
         solvedCount++;
-        if (solvedCount === BLOCKS.length) {
+        if (solvedCount === activeBlocks.length) {
           setTimeout(showFireworks, 600);
         }
       } else {
@@ -288,7 +314,7 @@ function buildAll() {
   solvedCount = 0;
   const grid = document.getElementById('blocks-grid');
   grid.innerHTML = '';
-  BLOCKS.forEach((b, i) => grid.appendChild(buildBlock(b, i)));
+  activeBlocks.forEach((b, i) => grid.appendChild(buildBlock(b, i)));
 }
 
 function showFireworks() {
@@ -318,9 +344,13 @@ function restartGame() {
   document.getElementById('fireworks-overlay').classList.remove('show');
   stars = 0;
   document.getElementById('star-count').textContent = '0';
-  buildAll();
+  loadHomework(currentHW);
 }
 
+// Init
+HOMEWORKS = HOMEWORK_CONFIG;
+activeBlocks = HOMEWORKS[0].blocks;
+renderSidebar(HOMEWORKS, currentHW, loadHomework);
 buildAll();
 </script>
 </body>

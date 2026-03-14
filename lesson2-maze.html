@@ -6,14 +6,10 @@
   <title>Maze Adventure 🐾</title>
   <link rel="stylesheet" href="style.css">
   <script src="sounds.js"></script>
+  <script src="sidebar.js"></script>
+  <script src="assignments/lesson2.js"></script>
   <style>
-    body {
-      background: linear-gradient(135deg, #FFF9F0, #E8F8F0);
-      display: flex;
-      flex-direction: column;
-      height: 100vh;
-      overflow: hidden;
-    }
+    body { background: linear-gradient(135deg, #FFF9F0, #E8F8F0); }
 
     main {
       flex: 1;
@@ -111,7 +107,7 @@
     }
   </style>
 </head>
-<body>
+<body class="lesson-body">
 
 <div class="top-bar">
   <button class="btn-home" onclick="location.href='index.html'">🏠</button>
@@ -119,34 +115,64 @@
   <div class="star-bar">⭐ <span id="star-count">0</span></div>
 </div>
 
-<main>
-  <div class="instruction">Trace a path through the maze with your finger or mouse! ✏️</div>
+<div class="app-layout">
 
-  <div class="controls">
-    <button class="tool-btn active" id="btn-pencil" onclick="setTool('pencil')">✏️ Draw</button>
-    <button class="tool-btn"        id="btn-eraser" onclick="setTool('eraser')">🧹 Erase</button>
-    <button class="tool-btn"                        onclick="clearDrawing()">🗑️ Clear</button>
+  <!-- Sidebar -->
+  <div class="sidebar" id="sidebar">
+    <button class="sidebar-toggle" id="sidebar-toggle" onclick="toggleSidebar()">›</button>
+    <div class="sidebar-inner">
+      <div class="sidebar-title">Homework</div>
+      <div class="hw-list" id="hw-list"></div>
+    </div>
   </div>
 
-  <div class="color-row">
-    <span class="color-label">Color:</span>
-    <div class="color-dot active" style="background:#2F86EB" data-color="#2F86EB" onclick="setColor(this)"></div>
-    <div class="color-dot"        style="background:#FF4757" data-color="#FF4757" onclick="setColor(this)"></div>
-    <div class="color-dot"        style="background:#2ED573" data-color="#2ED573" onclick="setColor(this)"></div>
-    <div class="color-dot"        style="background:#FF7F50" data-color="#FF7F50" onclick="setColor(this)"></div>
-    <div class="color-dot"        style="background:#A855F7" data-color="#A855F7" onclick="setColor(this)"></div>
-    <div class="color-dot"        style="background:#FF1493" data-color="#FF1493" onclick="setColor(this)"></div>
+  <!-- Main content -->
+  <div class="lesson-scroll no-scroll">
+    <main>
+      <div class="instruction">Trace a path through the maze with your finger or mouse! ✏️</div>
+
+      <div class="controls">
+        <button class="tool-btn active" id="btn-pencil" onclick="setTool('pencil')">✏️ Draw</button>
+        <button class="tool-btn"        id="btn-eraser" onclick="setTool('eraser')">🧹 Erase</button>
+        <button class="tool-btn"                        onclick="clearDrawing()">🗑️ Clear</button>
+      </div>
+
+      <div class="color-row">
+        <span class="color-label">Color:</span>
+        <div class="color-dot active" style="background:#2F86EB" data-color="#2F86EB" onclick="setColor(this)"></div>
+        <div class="color-dot"        style="background:#FF4757" data-color="#FF4757" onclick="setColor(this)"></div>
+        <div class="color-dot"        style="background:#2ED573" data-color="#2ED573" onclick="setColor(this)"></div>
+        <div class="color-dot"        style="background:#FF7F50" data-color="#FF7F50" onclick="setColor(this)"></div>
+        <div class="color-dot"        style="background:#A855F7" data-color="#A855F7" onclick="setColor(this)"></div>
+        <div class="color-dot"        style="background:#FF1493" data-color="#FF1493" onclick="setColor(this)"></div>
+      </div>
+
+      <div class="feedback" id="feedback"></div>
+
+      <div class="maze-wrap" id="maze-wrap">
+        <img id="maze-img" src="assets/lesson2/animal_maze.png" alt="Maze">
+        <canvas id="draw-canvas"></canvas>
+      </div>
+    </main>
   </div>
 
-  <div class="feedback" id="feedback"></div>
-
-  <div class="maze-wrap" id="maze-wrap">
-    <img id="maze-img" src="assets/lesson2/animal_maze.png" alt="Maze">
-    <canvas id="draw-canvas"></canvas>
-  </div>
-</main>
+</div><!-- end app-layout -->
 
 <script>
+// Assignments are loaded from assignments/lesson2.json
+// Requires a local HTTP server (not file://)
+let HOMEWORKS = [];
+
+let currentHW = 0;
+
+function loadHomework(idx) {
+  currentHW = idx;
+  renderSidebar(HOMEWORKS, currentHW, loadHomework);
+  document.getElementById('maze-img').src = HOMEWORKS[idx].image;
+  clearDrawing();
+}
+
+// ---- Canvas drawing ----
 const drawCanvas = document.getElementById('draw-canvas');
 const ctx = drawCanvas.getContext('2d');
 
@@ -155,9 +181,8 @@ let drawColor = '#2F86EB';
 let drawSize  = 6;
 let isDrawing = false;
 let lastX = 0, lastY = 0;
-let drawSoundTimer = 0; // throttle draw sound
+let drawSoundTimer = 0;
 
-// Match canvas pixels to its display size
 function resizeCanvas() {
   const wrap = document.getElementById('maze-wrap');
   drawCanvas.width  = wrap.clientWidth;
@@ -191,7 +216,6 @@ drawCanvas.addEventListener('pointermove', e => {
   paint(lastX, lastY, pos.x, pos.y);
   lastX = pos.x;
   lastY = pos.y;
-  // Throttle draw sound to every ~80ms
   const now = Date.now();
   if (now - drawSoundTimer > 80) { SFX.draw(); drawSoundTimer = now; }
   e.preventDefault();
@@ -242,6 +266,11 @@ function clearDrawing() {
 
 window.addEventListener('resize', resizeCanvas);
 window.addEventListener('load',   resizeCanvas);
+
+// Init
+HOMEWORKS = HOMEWORK_CONFIG;
+renderSidebar(HOMEWORKS, currentHW, loadHomework);
+document.getElementById('maze-img').src = HOMEWORKS[0].image;
 </script>
 </body>
 </html>
