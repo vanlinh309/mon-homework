@@ -48,7 +48,7 @@ window.HOMEWORK_CONFIG = [
     blocks: [
       { image: "assets/lesson4/Set4/1.png", numbers: [7, 8, 2], answer: 8 },
       { image: "assets/lesson4/Set4/2.png", numbers: [4, 2, 3], answer: 2 },
-      { image: "assets/lesson4/Set4/3.png", numbers: [3, 5, 6], answer: 7 },
+      { image: "assets/lesson4/Set4/3.png", numbers: [3, 5, 7], answer: 7 },
       { image: "assets/lesson4/Set4/4.png", numbers: [4, 6, 5], answer: 6 }
     ]
   }
