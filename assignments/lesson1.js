@@ -1,11 +1,24 @@
 // Shadow Match — Homework Assignments
-// Add new homework sets to this array.
-// prefix + name → assets/lesson1/{prefix}_{name}.png and {prefix}_{name}_shadow.png
-// prefix '' uses files with no prefix (e.g. bus.png / bus_shadow.png)
+// Each entry: folder path + pairs array (just the numbers matching oN / sN files)
 window.HOMEWORK_CONFIG = [
   {
-    "label": "HW 1",
-    "prefix": "",
-    "pairs": ["bus", "car", "helicopter", "taxi", "truck"]
+    label:  "🐾 Animals",
+    folder: "assets/lesson1/Animals",
+    pairs:  ["1","2","3","4","5"]
+  },
+  {
+    label:  "🍎 Fruits",
+    folder: "assets/lesson1/Fruits",
+    pairs:  ["1","2","3","4","5"]
+  },
+  {
+    label:  "👨 People",
+    folder: "assets/lesson1/People",
+    pairs:  ["1","2","3","4"]
+  },
+  {
+    label:  "🚗 Vehicles",
+    folder: "assets/lesson1/Vehicles",
+    pairs:  ["2","3","4","5","6"]
   }
 ];

@@ -26,6 +26,7 @@
   margin: 0;
   padding: 0;
   -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
 }
 
 html, body {
@@ -238,31 +239,31 @@ html, body {
 
 /* ---- Sidebar ---- */
 .sidebar {
-  width: 28px;
-  min-width: 28px;
-  background: #fff;
-  border-right: 2px solid #eee;
+  width: 32px;
+  min-width: 32px;
+  background: linear-gradient(180deg, #1e3c72 0%, #2a5298 100%);
   display: flex;
   flex-direction: column;
   flex-shrink: 0;
-  transition: width 0.25s ease;
+  transition: width 0.28s cubic-bezier(0.4, 0, 0.2, 1);
   overflow: hidden;
   z-index: 50;
+  box-shadow: 3px 0 16px rgba(30,60,114,0.18);
 }
 .sidebar.open {
-  width: 160px;
-  min-width: 160px;
+  width: 180px;
+  min-width: 180px;
 }
 
-/* Toggle arrow button — always visible at 28px */
+/* Toggle tab — sits flush on the right edge of the strip */
 .sidebar-toggle {
-  width: 28px;
-  min-width: 28px;
-  height: 48px;
+  width: 32px;
+  min-width: 32px;
+  height: 52px;
   border: none;
-  background: var(--color-blue);
+  background: rgba(255,255,255,0.12);
   color: #fff;
-  font-size: 1.1rem;
+  font-size: 1rem;
   cursor: pointer;
   display: flex;
   align-items: center;
@@ -271,58 +272,96 @@ html, body {
   touch-action: manipulation;
   transition: background 0.15s;
   align-self: flex-start;
+  border-bottom: 1px solid rgba(255,255,255,0.1);
 }
-.sidebar-toggle:active { background: #1a6fd4; }
+.sidebar-toggle:active { background: rgba(255,255,255,0.22); }
 
-/* Inner content — fades in when open */
+/* Inner content — slides + fades in when open */
 .sidebar-inner {
   flex: 1;
   overflow-y: auto;
   overflow-x: hidden;
-  padding: 6px 0 12px;
+  padding: 0 0 16px;
   opacity: 0;
   pointer-events: none;
-  transition: opacity 0.2s ease;
-  min-width: 160px;
+  transition: opacity 0.18s ease;
+  min-width: 180px;
 }
 .sidebar.open .sidebar-inner {
   opacity: 1;
   pointer-events: auto;
 }
 
+/* Coloured header band inside the panel */
+.sidebar-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 14px 14px 10px;
+  border-bottom: 1px solid rgba(255,255,255,0.12);
+  margin-bottom: 6px;
+}
+.sidebar-header-icon {
+  font-size: 1.2rem;
+  line-height: 1;
+}
 .sidebar-title {
-  font-size: 0.7rem;
+  font-size: 0.72rem;
   font-weight: bold;
-  color: #aaa;
+  color: rgba(255,255,255,0.75);
   text-transform: uppercase;
-  letter-spacing: 1px;
-  padding: 6px 12px 8px;
+  letter-spacing: 1.2px;
   white-space: nowrap;
 }
 
+/* Each homework button */
 .hw-item {
-  display: block;
-  width: 100%;
-  padding: 11px 14px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: calc(100% - 16px);
+  margin: 3px 8px;
+  padding: 9px 12px;
   border: none;
-  background: none;
+  border-radius: 10px;
+  background: transparent;
   font-family: var(--font-main);
-  font-size: 0.95rem;
-  color: #555;
+  font-size: 0.9rem;
+  color: rgba(255,255,255,0.7);
   cursor: pointer;
   text-align: left;
   white-space: nowrap;
   touch-action: manipulation;
-  border-left: 3px solid transparent;
-  transition: background 0.12s, color 0.12s;
-  min-height: 44px;
+  transition: background 0.14s, color 0.14s, transform 0.1s;
+  min-height: 40px;
 }
-.hw-item:hover   { background: #f0f5ff; }
-.hw-item.active  {
-  background: #E8F4FF;
-  color: var(--color-blue);
-  border-left-color: var(--color-blue);
+.hw-item:hover {
+  background: rgba(255,255,255,0.12);
+  color: #fff;
+}
+.hw-item.active {
+  background: #fff;
+  color: #1e3c72;
   font-weight: bold;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.18);
+}
+/* Number badge on each item */
+.hw-item .hw-num {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: rgba(255,255,255,0.18);
+  font-size: 0.72rem;
+  font-weight: bold;
+  flex-shrink: 0;
+  color: #fff;
+}
+.hw-item.active .hw-num {
+  background: #2a5298;
+  color: #fff;
 }
 
 /* Scrollable lesson area next to sidebar */
@@ -348,3 +387,35 @@ html, body {
   .lesson-card h2     { font-size: 1.1rem; }
   .lesson-card p      { display: none; }
 }
+
+/* ============================================
+   Page Transitions (Idea 5)
+   ============================================ */
+
+@keyframes page-enter {
+  from { opacity: 0; transform: translateY(12px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+body {
+  animation: page-enter 0.3s ease both;
+}
+
+body.page-exit {
+  opacity: 0;
+  transform: translateY(-8px);
+  transition: opacity 0.2s ease, transform 0.2s ease;
+  pointer-events: none;
+}
+
+
+/* ============================================
+   Sidebar Hint Pulse (Idea 6)
+   ============================================ */
+
+@keyframes hint-pulse {
+  0%,100% { box-shadow: 3px 0 16px rgba(30,60,114,0.18); }
+  50%      { box-shadow: 8px 0 24px rgba(42,82,152,0.55); }
+}
+
+.sidebar.hint { animation: hint-pulse 0.7s ease 3; }

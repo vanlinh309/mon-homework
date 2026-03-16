@@ -6,65 +6,153 @@
   <title>Mon's Learning Games 🌟</title>
   <link rel="stylesheet" href="style.css">
   <style>
-    body { background: linear-gradient(135deg, #FFF9F0 0%, #FFF0E6 100%); }
+    body {
+      background: linear-gradient(160deg, #FFF0FB 0%, #FFF9F0 40%, #F0F8FF 100%);
+      min-height: 100vh;
+    }
+
+    /* Hero */
     .hero {
       text-align: center;
-      padding: 30px 20px 10px;
+      padding: 28px 20px 4px;
     }
-    .hero h1 {
-      font-size: 2.4rem;
-      color: var(--color-blue);
-      text-shadow: 2px 2px 0 #b3d0f5;
+    .hero-title {
+      font-size: 2.6rem;
+      background: linear-gradient(135deg, var(--color-blue), var(--color-purple));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      line-height: 1.15;
     }
-    .hero p {
-      font-size: 1.1rem;
-      color: #666;
+    .hero-sub {
+      font-size: 1.15rem;
+      color: #777;
       margin-top: 6px;
     }
+    .hero-stars {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      margin-top: 10px;
+      font-size: 1.4rem;
+      animation: bounce-in 0.6s ease both;
+    }
+
+    /* Cards */
+    .home-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+      gap: 20px;
+      padding: 20px 20px 80px;
+      max-width: 1000px;
+      margin: 0 auto;
+    }
+
+    .lesson-card {
+      position: relative;
+      overflow: hidden;
+      min-height: 190px;
+    }
+
+    /* Staggered card entrance */
+    .lesson-card:nth-child(1) { animation: card-enter 0.4s ease 0.05s both; }
+    .lesson-card:nth-child(2) { animation: card-enter 0.4s ease 0.12s both; }
+    .lesson-card:nth-child(3) { animation: card-enter 0.4s ease 0.19s both; }
+    .lesson-card:nth-child(4) { animation: card-enter 0.4s ease 0.26s both; }
+    .lesson-card:nth-child(5) { animation: card-enter 0.4s ease 0.33s both; }
+
+    @keyframes card-enter {
+      from { opacity: 0; transform: translateY(22px) scale(0.96); }
+      to   { opacity: 1; transform: translateY(0)   scale(1);    }
+    }
+
+    /* Sheen animation on cards */
+    .lesson-card::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(135deg, rgba(255,255,255,0.18) 0%, transparent 60%);
+      pointer-events: none;
+      border-radius: inherit;
+    }
+
+    /* Card colours */
     .card-1 { background: linear-gradient(135deg, #FF6B9D, #FF4757); }
     .card-2 { background: linear-gradient(135deg, #4ECDC4, #2F86EB); }
     .card-3 { background: linear-gradient(135deg, #FFD700, #FF7F50); }
     .card-4 { background: linear-gradient(135deg, #A8E6CF, #2ED573); }
     .card-5 { background: linear-gradient(135deg, #C9A0DC, #A855F7); }
+
+    /* Badge on each card */
+    .card-badge {
+      position: absolute;
+      top: 12px;
+      right: 14px;
+      background: rgba(255,255,255,0.3);
+      border-radius: 50px;
+      padding: 3px 10px;
+      font-size: 0.72rem;
+      font-weight: bold;
+      color: #fff;
+      letter-spacing: 0.5px;
+    }
+
+    @media (max-width: 600px) {
+      .hero-title { font-size: 2rem; }
+      .home-grid  { grid-template-columns: 1fr 1fr; gap: 12px; padding: 12px 12px 80px; }
+      .lesson-card { min-height: 150px; padding: 18px 10px; }
+      .lesson-card .emoji { font-size: 2.6rem; }
+      .lesson-card h2 { font-size: 1.05rem; }
+      .lesson-card p  { display: none; }
+    }
   </style>
 </head>
 <body>
   <div class="top-bar">
-    <h1>🎓 Mon's Learning Games</h1>
+    <span style="font-size:1.5rem;">🎓</span>
+    <h1>Mon's Learning Games</h1>
     <div class="star-bar">⭐ Let's Play!</div>
   </div>
 
   <div class="hero">
-    <h1>Choose a Game!</h1>
-    <p>Tap a card to start learning 🎉</p>
+    <div class="hero-title">Choose a Game! 🎮</div>
+    <div class="hero-sub">Tap a card to start learning 🎉</div>
+    <div class="hero-stars">⭐ ⭐ ⭐ ⭐ ⭐</div>
   </div>
 
   <div class="home-grid">
     <a class="lesson-card card-1" href="lesson1-shadow.html">
+      <span class="card-badge">Lesson 1</span>
       <span class="emoji">🐱</span>
       <h2>Shadow Match</h2>
       <p>Draw lines to match objects with their shadows!</p>
     </a>
     <a class="lesson-card card-2" href="lesson2-maze.html">
+      <span class="card-badge">Lesson 2</span>
       <span class="emoji">🐟</span>
       <h2>Maze Adventure</h2>
       <p>Help the cat find the fish through the maze!</p>
     </a>
     <a class="lesson-card card-3" href="lesson3-patterns.html">
+      <span class="card-badge">Lesson 3</span>
       <span class="emoji">🔴</span>
       <h2>Pattern Power</h2>
       <p>Spot the pattern and find the missing piece!</p>
     </a>
     <a class="lesson-card card-4" href="lesson4-counting.html">
+      <span class="card-badge">Lesson 4</span>
       <span class="emoji">🍎</span>
       <h2>Count It Up!</h2>
       <p>Count the objects and pick the right number!</p>
     </a>
     <a class="lesson-card card-5" href="lesson5-coloring.html">
+      <span class="card-badge">Lesson 5</span>
       <span class="emoji">🎨</span>
       <h2>Color Shapes</h2>
       <p>Tap shapes to color them the right way!</p>
     </a>
   </div>
+
+  <script src="nav.js"></script>
 </body>
 </html>

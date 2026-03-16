@@ -7,6 +7,7 @@
   <link rel="stylesheet" href="style.css">
   <script src="sounds.js"></script>
   <script src="sidebar.js"></script>
+  <script src="nav.js"></script>
   <script src="assignments/lesson1.js"></script>
   <style>
     body { background: linear-gradient(135deg, #FFF9F0, #F5F0FF); }
@@ -37,7 +38,7 @@
       flex: 1;
       display: flex;
       flex-direction: column;
-      justify-content: space-around;
+      justify-content: normal;
       gap: 8px;
     }
     #col-objects {
@@ -105,7 +106,7 @@
   <div class="sidebar" id="sidebar">
     <button class="sidebar-toggle" id="sidebar-toggle" onclick="toggleSidebar()">›</button>
     <div class="sidebar-inner">
-      <div class="sidebar-title">Homework</div>
+
       <div class="hw-list" id="hw-list"></div>
     </div>
   </div>
@@ -142,9 +143,8 @@
 // Requires a local HTTP server (not file://)
 let HOMEWORKS = [];
 
-function imgPath(prefix, name, isShadow) {
-  const p = prefix ? prefix + '_' : '';
-  return `assets/lesson1/${p}${name}${isShadow ? '_shadow' : ''}.png`;
+function imgPath(hw, name, isShadow) {
+  return `${hw.folder}/${isShadow ? 's' : 'o'}${name}.png`;
 }
 
 const TOTAL_ROUNDS = 3;
@@ -183,7 +183,7 @@ function showRound() {
   dragFromId   = null;
 
   const hw = HOMEWORKS[currentHW];
-  pairs       = shuffle(hw.pairs.map(name => ({ id: hw.prefix + name, name, label: name })));
+  pairs       = shuffle(hw.pairs.map(name => ({ id: name, name })));
   shadowOrder = shuffle(pairs.map(p => p.id));
 
   document.getElementById('round-label').textContent =
@@ -200,7 +200,7 @@ function showRound() {
     box.id = 'obj-' + p.id;
     box.dataset.pairId = p.id;
     const img = document.createElement('img');
-    img.src = imgPath(hw.prefix, p.name, false);
+    img.src = imgPath(hw, p.name, false);
     img.alt = p.name;
     img.draggable = false;
     box.appendChild(img);
@@ -217,7 +217,7 @@ function showRound() {
     box.id = 'shd-' + id;
     box.dataset.pairId = id;
     const img = document.createElement('img');
-    img.src = imgPath(hw.prefix, p.name, true);
+    img.src = imgPath(hw, p.name, true);
     img.alt = p.name + ' shadow';
     img.draggable = false;
     box.appendChild(img);

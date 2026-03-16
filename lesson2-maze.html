@@ -7,6 +7,7 @@
   <link rel="stylesheet" href="style.css">
   <script src="sounds.js"></script>
   <script src="sidebar.js"></script>
+  <script src="nav.js"></script>
   <script src="assignments/lesson2.js"></script>
   <style>
     body { background: linear-gradient(135deg, #FFF9F0, #E8F8F0); }
@@ -16,56 +17,65 @@
       display: flex;
       flex-direction: column;
       align-items: center;
-      padding: 10px 16px;
-      gap: 10px;
+      padding: 6px 12px;
+      gap: 6px;
       overflow: hidden;
       min-height: 0;
     }
 
-    .instruction { font-size: 1rem; color: #555; text-align: center; }
-
-    /* Controls row */
-    .controls {
+    /* Compact toolbar: tool buttons + color dots in one row */
+    .toolbar {
       display: flex;
-      gap: 10px;
-      flex-wrap: wrap;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: nowrap;
       justify-content: center;
     }
+
     .tool-btn {
-      min-width: 70px;
+      width: 44px;
+      height: 44px;
       border: 3px solid #ddd;
-      font-family: var(--font-main);
-      font-size: 1rem;
+      border-radius: 12px;
+      background: #fff;
+      font-size: 1.3rem;
       cursor: pointer;
       touch-action: manipulation;
       transition: border-color 0.12s, background 0.12s, transform 0.1s;
-      padding: 3px 5px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 0;
     }
     .tool-btn.active {
       border-color: var(--color-blue);
       background: #E8F4FF;
-      transform: scale(1.05);
+      transform: scale(1.08);
     }
-    .tool-btn:active { transform: scale(0.95); }
+    .tool-btn:active { transform: scale(0.92); }
+
+    /* Divider between tool buttons and color dots */
+    .toolbar-divider {
+      width: 2px;
+      height: 32px;
+      background: #ddd;
+      border-radius: 2px;
+      flex-shrink: 0;
+    }
 
     /* Color dots */
-    .color-row {
-      display: flex;
-      gap: 8px;
-      align-items: center;
-    }
-    .color-label { font-size: 0.9rem; color: #666; }
     .color-dot {
-      width: 36px;
-      height: 36px;
+      width: 26px;
+      height: 26px;
       border-radius: 50%;
       border: 3px solid #fff;
       cursor: pointer;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+      box-shadow: 0 2px 5px rgba(0,0,0,0.2);
       touch-action: manipulation;
       transition: transform 0.1s;
+      flex-shrink: 0;
     }
-    .color-dot.active { border-color: #333; transform: scale(1.2); }
+    .color-dot.active { border-color: #333; transform: scale(1.25); }
     .color-dot:active  { transform: scale(0.9); }
 
     .feedback { margin: 0; }
@@ -82,6 +92,8 @@
       box-shadow: var(--shadow);
       background: #fff;
       touch-action: none;
+      /* leave room for bottom nav bar */
+      margin-bottom: 70px;
     }
 
     /* The maze image fills the container */
@@ -121,7 +133,7 @@
   <div class="sidebar" id="sidebar">
     <button class="sidebar-toggle" id="sidebar-toggle" onclick="toggleSidebar()">›</button>
     <div class="sidebar-inner">
-      <div class="sidebar-title">Homework</div>
+
       <div class="hw-list" id="hw-list"></div>
     </div>
   </div>
@@ -129,16 +141,11 @@
   <!-- Main content -->
   <div class="lesson-scroll no-scroll">
     <main>
-      <div class="instruction">Trace a path through the maze with your finger or mouse! ✏️</div>
-
-      <div class="controls">
-        <button class="tool-btn active" id="btn-pencil" onclick="setTool('pencil')">✏️ Draw</button>
-        <button class="tool-btn"        id="btn-eraser" onclick="setTool('eraser')">🧹 Erase</button>
-        <button class="tool-btn"                        onclick="clearDrawing()">🗑️ Clear</button>
-      </div>
-
-      <div class="color-row">
-        <span class="color-label">Color:</span>
+      <div class="toolbar">
+        <button class="tool-btn active" id="btn-pencil" onclick="setTool('pencil')" title="Draw">✏️</button>
+        <button class="tool-btn"        id="btn-eraser" onclick="setTool('eraser')" title="Erase">🧹</button>
+        <button class="tool-btn"                        onclick="clearDrawing()"    title="Clear">🗑️</button>
+        <div class="toolbar-divider"></div>
         <div class="color-dot active" style="background:#2F86EB" data-color="#2F86EB" onclick="setColor(this)"></div>
         <div class="color-dot"        style="background:#FF4757" data-color="#FF4757" onclick="setColor(this)"></div>
         <div class="color-dot"        style="background:#2ED573" data-color="#2ED573" onclick="setColor(this)"></div>

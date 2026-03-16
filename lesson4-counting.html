@@ -7,6 +7,7 @@
   <link rel="stylesheet" href="style.css">
   <script src="sounds.js"></script>
   <script src="sidebar.js"></script>
+  <script src="nav.js"></script>
   <script src="assignments/lesson4.js"></script>
   <style>
     body { background: linear-gradient(135deg, #FFF9F0, #F0FFF4); }
@@ -155,6 +156,44 @@
       .obj-item { width: 54px; height: 54px; font-size: 2rem; }
       .num-btn   { width: 56px; height: 56px; font-size: 1.4rem; }
     }
+
+    /* Image-based block */
+    .blocks-grid.single {
+      grid-template-columns: 1fr;
+      margin: 0 auto;
+    }
+    .img-grid-2x2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      width: 100%;
+    }
+    .img-item {
+      aspect-ratio: 1;
+      border-radius: 16px;
+      overflow: hidden;
+      background: #f5f5f5;
+      border: 2px solid #eee;
+      min-height: 160px;
+    }
+    .img-item img {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      display: block;
+    }
+    .count-block.img-block {
+      padding: 20px;
+      gap: 16px;
+    }
+    .count-block.img-block .num-choices {
+      gap: 16px;
+    }
+    .count-block.img-block .num-btn {
+      width: 80px;
+      height: 80px;
+      font-size: 2rem;
+    }
   </style>
 </head>
 <body class="lesson-body">
@@ -171,7 +210,7 @@
   <div class="sidebar" id="sidebar">
     <button class="sidebar-toggle" id="sidebar-toggle" onclick="toggleSidebar()">›</button>
     <div class="sidebar-inner">
-      <div class="sidebar-title">Homework</div>
+
       <div class="hw-list" id="hw-list"></div>
     </div>
   </div>
@@ -227,7 +266,42 @@ function generateChoices(correct) {
   return [...pool].sort(() => Math.random() - 0.5);
 }
 
+function buildNumChoices(correct, numList, onCorrect, onWrong) {
+  const wrap = document.createElement('div');
+  wrap.className = 'num-choices';
+  let answered = false;
+  numList.forEach(num => {
+    const btn = document.createElement('button');
+    btn.className = 'num-btn';
+    btn.textContent = num;
+    btn.addEventListener('pointerdown', () => {
+      if (answered) return;
+      SFX.click();
+      if (num === correct) {
+        answered = true;
+        btn.classList.add('correct');
+        SFX.correct();
+        onCorrect();
+      } else {
+        SFX.wrong();
+        btn.classList.add('wrong');
+        setTimeout(() => { btn.classList.remove('wrong'); btn.disabled = true; btn.style.opacity = '0.4'; }, 600);
+        onWrong();
+      }
+    });
+    wrap.appendChild(btn);
+  });
+  return wrap;
+}
+
 function buildBlock(block, index) {
+  const hw = HOMEWORKS[currentHW];
+  return hw.isShowFromImage
+    ? buildImageBlock(block, index)
+    : buildEmojiBlock(block, index);
+}
+
+function buildEmojiBlock(block, index) {
   let tapCount = 0;
   let answered = false;
 
@@ -235,10 +309,8 @@ function buildBlock(block, index) {
   card.className = 'count-block';
   card.id = 'block-' + index;
 
-  // Object grid
   const grid = document.createElement('div');
   grid.className = 'obj-grid';
-
   for (let i = 0; i < block.count; i++) {
     const item = document.createElement('div');
     item.className = 'obj-item';
@@ -256,64 +328,68 @@ function buildBlock(block, index) {
     grid.appendChild(item);
   }
 
-  // Tap counter
   const counterEl = document.createElement('div');
   counterEl.className = 'tap-counter';
   counterEl.textContent = 'Counted: 0';
 
-  // Number choices
-  const choicesWrap = document.createElement('div');
-  choicesWrap.className = 'num-choices';
-
-  const choices = generateChoices(block.count);
-  choices.forEach(num => {
-    const btn = document.createElement('button');
-    btn.className = 'num-btn';
-    btn.textContent = num;
-    btn.addEventListener('pointerdown', () => {
-      if (answered) return;
-      SFX.click();
-
-      if (num === block.count) {
-        SFX.correct();
-        answered = true;
-        btn.classList.add('correct');
-        card.classList.add('solved');
-        stars++;
-        document.getElementById('star-count').textContent = stars;
-        solvedCount++;
-        if (solvedCount === activeBlocks.length) {
-          setTimeout(showFireworks, 600);
-        }
-      } else {
-        SFX.wrong();
-        btn.classList.add('wrong');
-        setTimeout(() => {
-          btn.classList.remove('wrong');
-          btn.disabled = true;
-          btn.style.opacity = '0.4';
-        }, 600);
-      }
-    });
-    choicesWrap.appendChild(btn);
-  });
-
-  // Solved badge
   const badge = document.createElement('div');
   badge.className = 'solved-badge';
   badge.textContent = '✅ Correct!';
 
+  const choices = buildNumChoices(block.count, generateChoices(block.count),
+    () => { answered = true; card.classList.add('solved'); stars++; document.getElementById('star-count').textContent = stars; solvedCount++; if (solvedCount === activeBlocks.length) setTimeout(showFireworks, 600); },
+    () => {}
+  );
+
   card.appendChild(grid);
   card.appendChild(counterEl);
-  card.appendChild(choicesWrap);
+  card.appendChild(choices);
+  card.appendChild(badge);
+  return card;
+}
+
+function buildImageBlock(block, index) {
+  const card = document.createElement('div');
+  card.className = 'count-block img-block';
+  card.id = 'block-' + index;
+
+  // 2×2 image grid
+  const imgGrid = document.createElement('div');
+  imgGrid.className = 'img-grid-2x2';
+  for (let i = 1; i <= 4; i++) {
+    const wrap = document.createElement('div');
+    wrap.className = 'img-item';
+    const img = document.createElement('img');
+    img.src = `${block.folder}/${i}.png`;
+    img.alt = `Item ${i}`;
+    wrap.appendChild(img);
+    imgGrid.appendChild(wrap);
+  }
+
+  const badge = document.createElement('div');
+  badge.className = 'solved-badge';
+  badge.textContent = '✅ Correct!';
+
+  const choices = buildNumChoices(block.answer, block.numbers,
+    () => { card.classList.add('solved'); stars++; document.getElementById('star-count').textContent = stars; solvedCount++; if (solvedCount === activeBlocks.length) setTimeout(showFireworks, 600); },
+    () => {}
+  );
+
+  card.appendChild(imgGrid);
+  card.appendChild(choices);
   card.appendChild(badge);
   return card;
 }
 
 function buildAll() {
   solvedCount = 0;
+  const hw   = HOMEWORKS[currentHW];
   const grid = document.getElementById('blocks-grid');
   grid.innerHTML = '';
+  grid.className = 'blocks-grid' + (hw.isShowFromImage ? ' single' : '');
+  document.querySelector('.instruction').textContent = hw.isShowFromImage
+    ? 'Count the pictures and pick the right number! 🔢'
+    : 'Tap each object to count it, then pick the right number! 🔢';
   activeBlocks.forEach((b, i) => grid.appendChild(buildBlock(b, i)));
 }
 
