@@ -158,41 +158,27 @@
     }
 
     /* Image-based block */
-    .blocks-grid.single {
-      grid-template-columns: 1fr;
-      margin: 0 auto;
+    .count-block.img-block {
+      padding: 12px 10px 10px;
+      gap: 8px;
     }
-    .img-grid-2x2 {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 12px;
+    .challenge-img {
       width: 100%;
-    }
-    .img-item {
       aspect-ratio: 1;
-      border-radius: 16px;
-      overflow: hidden;
-      background: #f5f5f5;
-      border: 2px solid #eee;
-      min-height: 160px;
-    }
-    .img-item img {
-      width: 100%;
-      height: 100%;
       object-fit: contain;
+      border-radius: 12px;
+      background: #f5f5f5;
       display: block;
     }
-    .count-block.img-block {
-      padding: 20px;
-      gap: 16px;
-    }
     .count-block.img-block .num-choices {
-      gap: 16px;
+      gap: 8px;
     }
     .count-block.img-block .num-btn {
-      width: 80px;
-      height: 80px;
-      font-size: 2rem;
+      width: 44px;
+      height: 44px;
+      font-size: 1.1rem;
+      border-radius: 10px;
+      box-shadow: 0 2px 0 #ddd;
     }
   </style>
 </head>
@@ -353,18 +339,11 @@ function buildImageBlock(block, index) {
   card.className = 'count-block img-block';
   card.id = 'block-' + index;
 
-  // 2×2 image grid
-  const imgGrid = document.createElement('div');
-  imgGrid.className = 'img-grid-2x2';
-  for (let i = 1; i <= 4; i++) {
-    const wrap = document.createElement('div');
-    wrap.className = 'img-item';
-    const img = document.createElement('img');
-    img.src = `${block.folder}/${i}.png`;
-    img.alt = `Item ${i}`;
-    wrap.appendChild(img);
-    imgGrid.appendChild(wrap);
-  }
+  const img = document.createElement('img');
+  img.src       = block.image;
+  img.alt       = 'Count the objects';
+  img.className = 'challenge-img';
+  card.appendChild(img);
 
   const badge = document.createElement('div');
   badge.className = 'solved-badge';
@@ -375,7 +354,6 @@ function buildImageBlock(block, index) {
     () => {}
   );
 
-  card.appendChild(imgGrid);
   card.appendChild(choices);
   card.appendChild(badge);
   return card;
@@ -386,7 +364,7 @@ function buildAll() {
   const hw   = HOMEWORKS[currentHW];
   const grid = document.getElementById('blocks-grid');
   grid.innerHTML = '';
-  grid.className = 'blocks-grid' + (hw.isShowFromImage ? ' single' : '');
+  grid.className = 'blocks-grid';
   document.querySelector('.instruction').textContent = hw.isShowFromImage
     ? 'Count the pictures and pick the right number! 🔢'
     : 'Tap each object to count it, then pick the right number! 🔢';
