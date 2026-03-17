@@ -177,6 +177,139 @@
     @media (max-width: 500px) {
       .choice-btn.img-choice { width: 100px; height: 100px; }
     }
+
+    /* Half-image matching mode */
+    .pattern-row.matching-mode {
+      position: relative;
+      flex-direction: row;
+      flex-wrap: nowrap;
+      align-items: center;
+      padding: 20px;
+      gap: 28px;
+      min-height: 320px;
+    }
+    .main-half-img {
+      flex: 1;
+      min-width: 0;
+      max-height: 320px;
+      object-fit: contain;
+      border-radius: 18px;
+      display: block;
+      box-shadow: 0 8px 28px rgba(0,0,0,0.14);
+      cursor: grab;
+      position: relative;
+      z-index: 2;
+    }
+    .main-half-img:active { cursor: grabbing; }
+
+    /* Choice column as one rounded card */
+    .match-choices-col {
+      display: flex;
+      flex-direction: column;
+      flex-shrink: 0;
+      border-radius: 20px;
+      overflow: hidden;
+      box-shadow: 0 6px 20px rgba(0,0,0,0.10);
+      background: #fff;
+      position: relative;
+      z-index: 2;
+    }
+    .choice-btn.match-choice {
+      width: 165px;
+      height: 115px;
+      padding: 8px 10px;
+      border: none;
+      border-bottom: 2px solid #f0f0f0;
+      border-radius: 0;
+      background: transparent;
+      box-shadow: none;
+      cursor: pointer;
+      touch-action: manipulation;
+      transition: background 0.15s;
+    }
+    .choice-btn.match-choice:last-child { border-bottom: none; }
+    .choice-btn.match-choice:hover     { background: #f0f5ff; }
+    .choice-btn.match-choice img {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      border-radius: 10px;
+      pointer-events: none;
+      display: block;
+    }
+    .choice-btn.match-choice.correct-pick { background: #d4ffd4; }
+    .choice-btn.match-choice.wrong-pick   { background: #ffe0e0; }
+
+    /* Canvas for drag-line drawing */
+    #match-canvas {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      z-index: 5;
+      border-radius: inherit;
+    }
+
+    @media (max-width: 540px) {
+      .pattern-row.matching-mode { flex-direction: column; gap: 16px; padding: 14px; }
+      .main-half-img { max-height: 200px; }
+      .match-choices-col { flex-direction: row; border-radius: 16px; }
+      .choice-btn.match-choice { width: 90px; height: 80px; border-bottom: none; border-right: 2px solid #f0f0f0; }
+      .choice-btn.match-choice:last-child { border-right: none; }
+    }
+
+    /* Odd one out mode — 4 images in one row */
+    .pattern-row.odd-out-mode {
+      flex-direction: row;
+      flex-wrap: nowrap;
+      align-items: stretch;
+      justify-content: center;
+      gap: 10px;
+      padding: 10px;
+      min-height: 260px;
+    }
+    .choice-btn.odd-choice {
+      flex: 1;
+      min-width: 0;
+      padding: 6px;
+      border-radius: 18px;
+      border: 3px solid #eee;
+      background: #fff;
+      box-shadow: 0 4px 14px rgba(0,0,0,0.08);
+      cursor: pointer;
+      touch-action: manipulation;
+      transition: transform 0.12s, border-color 0.12s, box-shadow 0.12s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .choice-btn.odd-choice:hover {
+      transform: scale(1.05);
+      border-color: var(--color-blue);
+      box-shadow: 0 6px 18px rgba(47,134,235,0.2);
+    }
+    .choice-btn.odd-choice img {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      border-radius: 12px;
+      pointer-events: none;
+      display: block;
+    }
+    .choice-btn.odd-choice.correct-pick {
+      border-color: var(--color-green);
+      background: #d4ffd4;
+      box-shadow: 0 0 0 4px rgba(46,213,115,0.3);
+    }
+    .choice-btn.odd-choice.wrong-pick {
+      border-color: var(--color-red);
+      background: #ffe0e0;
+    }
+    @media (max-width: 540px) {
+      .pattern-row.odd-out-mode { gap: 8px; padding: 12px; }
+      .choice-btn.odd-choice { border-radius: 12px; padding: 4px; }
+    }
   </style>
 </head>
 <body class="lesson-body">
@@ -238,6 +371,94 @@ let currentRound = 0;
 let stars        = 0;
 let answered     = false;
 let activeRounds = [];
+let matchDragAbort = null;   // AbortController for matching drag listeners
+
+// ---- Matching drag-line mechanic ----
+function setupMatchingDrag(row, round) {
+  if (matchDragAbort) matchDragAbort.abort();
+  matchDragAbort = new AbortController();
+  const sig = matchDragAbort.signal;
+
+  const canvas = document.getElementById('match-canvas');
+  if (!canvas) return;
+  const ctx = canvas.getContext('2d');
+
+  let dragging  = false;
+  let dragStart = null;
+
+  function resize() {
+    canvas.width  = row.offsetWidth;
+    canvas.height = row.offsetHeight;
+  }
+  resize();
+
+  function rowPos(e) {
+    const r = row.getBoundingClientRect();
+    return { x: e.clientX - r.left, y: e.clientY - r.top };
+  }
+  function centerOf(el) {
+    const rr = row.getBoundingClientRect();
+    const er = el.getBoundingClientRect();
+    return { x: er.left - rr.left + er.width / 2, y: er.top - rr.top + er.height / 2 };
+  }
+  function line(a, b, color, dash) {
+    ctx.beginPath();
+    ctx.moveTo(a.x, a.y);
+    ctx.lineTo(b.x, b.y);
+    ctx.strokeStyle = color;
+    ctx.lineWidth   = 5;
+    ctx.lineCap     = 'round';
+    ctx.setLineDash(dash || []);
+    ctx.stroke();
+    ctx.setLineDash([]);
+  }
+
+  row.addEventListener('pointerdown', e => {
+    if (answered) return;
+    const mainImg = row.querySelector('.main-half-img');
+    const r = mainImg.getBoundingClientRect();
+    if (e.clientX < r.left || e.clientX > r.right ||
+        e.clientY < r.top  || e.clientY > r.bottom) return;
+    dragging  = true;
+    dragStart = centerOf(mainImg);
+    row.setPointerCapture(e.pointerId);
+    SFX.click();
+    e.preventDefault();
+  }, { signal: sig });
+
+  row.addEventListener('pointermove', e => {
+    if (!dragging) return;
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    line(dragStart, rowPos(e), 'rgba(47,134,235,0.6)', [10, 6]);
+    e.preventDefault();
+  }, { signal: sig });
+
+  row.addEventListener('pointerup', e => {
+    if (!dragging) return;
+    dragging = false;
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    let hitBtn = null;
+    row.querySelectorAll('.choice-btn.match-choice').forEach(btn => {
+      const r = btn.getBoundingClientRect();
+      if (e.clientX >= r.left && e.clientX <= r.right &&
+          e.clientY >= r.top  && e.clientY <= r.bottom) hitBtn = btn;
+    });
+    if (!hitBtn) return;
+
+    const src       = hitBtn.getAttribute('data-value');
+    const isCorrect = src === round.answer;
+    const mainImg   = row.querySelector('.main-half-img');
+    const color     = isCorrect ? '#2ED573' : '#FF4757';
+    line(centerOf(mainImg), centerOf(hitBtn), color);
+
+    if (!isCorrect) setTimeout(() => ctx.clearRect(0, 0, canvas.width, canvas.height), 700);
+
+    handleChoice(src, hitBtn);
+  }, { signal: sig });
+
+  window.addEventListener('resize', resize, { signal: sig });
+}
 
 function loadHomework(idx) {
   currentHW    = idx;
@@ -262,10 +483,64 @@ function showRound() {
   const row       = document.getElementById('pattern-row');
   const choicesEl = document.getElementById('choices');
   row.innerHTML       = '';
-  row.classList.remove('img-mode');
+  row.classList.remove('img-mode', 'matching-mode', 'odd-out-mode');
   choicesEl.innerHTML = '';
 
-  if (hw.isLoadFromImage) {
+  // Update instruction text based on homework type
+  const instr = document.getElementById('instruction');
+  if (hw.isOddOneOut)     instr.textContent = "Which one doesn't belong? Tap the odd one out! 🤔";
+  else if (hw.isMatchingHalf) instr.textContent = "Drag a line from the picture to its matching half! ✏️";
+  else                    instr.textContent = "What comes next? Find the missing piece! 🔍";
+
+  if (hw.isOddOneOut) {
+    // ---- Odd one out: 4 images in a row, tap the one that doesn't belong ----
+    row.classList.add('odd-out-mode');
+    const shuffled = [...round.images].sort(() => Math.random() - 0.5);
+    shuffled.forEach(src => {
+      const btn = document.createElement('button');
+      btn.className = 'choice-btn odd-choice';
+      btn.setAttribute('data-value', src);
+      const img = document.createElement('img');
+      img.src = src;
+      img.alt = 'item';
+      btn.appendChild(img);
+      btn.addEventListener('pointerdown', () => handleChoice(src, btn));
+      row.appendChild(btn);
+    });
+
+  } else if (hw.isMatchingHalf) {
+    // ---- Half-image matching: drag line from main image to a choice ----
+    row.classList.add('matching-mode');
+
+    const mainImg = document.createElement('img');
+    mainImg.src       = round.mainImage;
+    mainImg.className = 'main-half-img';
+    mainImg.alt       = 'Drag from here';
+    row.appendChild(mainImg);
+
+    const col = document.createElement('div');
+    col.className = 'match-choices-col';
+    const shuffled = [...round.choices].sort(() => Math.random() - 0.5);
+    shuffled.forEach(src => {
+      const btn = document.createElement('button');
+      btn.className = 'choice-btn match-choice';
+      btn.setAttribute('data-value', src);
+      const cImg = document.createElement('img');
+      cImg.src = src;
+      cImg.alt = 'choice';
+      btn.appendChild(cImg);
+      col.appendChild(btn);
+    });
+    row.appendChild(col);
+
+    // Canvas for drag-line drawing (sits above content, pointer-events: none)
+    const canvas = document.createElement('canvas');
+    canvas.id = 'match-canvas';
+    row.appendChild(canvas);
+
+    setTimeout(() => setupMatchingDrag(row, round), 60);
+
+  } else if (hw.isLoadFromImage) {
     // ---- Image-based round ----
     row.classList.add('img-mode');
 
@@ -337,17 +612,19 @@ function handleChoice(sym, btn) {
     SFX.correct();
     btn.classList.add('correct-pick');
 
-    // Fill the missing slot
-    const slot = document.getElementById('missing-slot');
-    slot.style.border     = '4px solid var(--color-green)';
-    slot.style.background = '#d4ffd4';
-    if (hw.isLoadFromImage) {
-      slot.textContent = '';
-      const ansImg = document.createElement('img');
-      ansImg.src = sym;
-      slot.appendChild(ansImg);
-    } else {
-      slot.textContent = sym;
+    // Fill the missing slot (only for emoji/image pattern modes)
+    if (!hw.isMatchingHalf && !hw.isOddOneOut) {
+      const slot = document.getElementById('missing-slot');
+      slot.style.border     = '4px solid var(--color-green)';
+      slot.style.background = '#d4ffd4';
+      if (hw.isLoadFromImage) {
+        slot.textContent = '';
+        const ansImg = document.createElement('img');
+        ansImg.src = sym;
+        slot.appendChild(ansImg);
+      } else {
+        slot.textContent = sym;
+      }
     }
 
     stars++;

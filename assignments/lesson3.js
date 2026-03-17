@@ -1,6 +1,11 @@
 // Pattern Power — Homework Assignments
 // isLoadFromImage: false  → emoji-based round (patternRow + choices are text/emoji)
-// isLoadFromImage: true   → image-based round (patternImage + choices are image paths)
+// isLoadFromImage: true   → image-based round (patternImage + ? slot + image choices)
+// isMatchingHalf: true    → half-image matching (left: half image, right: 3 choice images)
+// isOddOneOut: true       → 4 images in a row, tap the one that doesn't belong
+//
+// Matching1 naming: {n}_half.png + {n}_a/b/c.png (correct = specified in answer)
+// OddOneOut naming: {n}_1/2/3/4.png  (odd one = specified in answer)
 window.HOMEWORK_CONFIG = [
   // {
   //   label: "⭐ Emoji",
@@ -19,6 +24,77 @@ window.HOMEWORK_CONFIG = [
       { pattern: ["🎂","🍔","?","🎂","🍔","🍔","🎂","🍔","🍔",], answer: "🍔", choices: ["🎂","🍔"] },
       { pattern: ["🐰","🐰","🐢","🐢","?",], answer: "🐰", choices: ["🐢","🐰"] },
       { pattern: ["🥤","🍷","🍸","🥤","?",], answer: "🍷", choices: ["🥤","🍷","🍸"] },
+    ]
+  },
+
+  
+  {
+    label: "🧩 Matching 1",
+    isMatchingHalf: true,
+    folder: "assets/Lesson3/Matching1",
+    rounds: [
+      {
+        mainImage: "assets/Lesson3/Matching1/m1.png",
+        choices: [
+          "assets/Lesson3/Matching1/m1_h (1).png",
+          "assets/Lesson3/Matching1/m1_h (2).png",
+          "assets/Lesson3/Matching1/m1_h (3)_OK.png"
+        ],
+        answer: "assets/Lesson3/Matching1/m1_h (3)_OK.png"
+      },
+      {
+        mainImage: "assets/Lesson3/Matching1/m2.png",
+        choices: [
+          "assets/Lesson3/Matching1/m2_h (1)_OK.png",
+          "assets/Lesson3/Matching1/m2_h (2).png",
+          "assets/Lesson3/Matching1/m2_h (3).png"
+        ],
+        answer: "assets/Lesson3/Matching1/m2_h (1)_OK.png"
+      },
+      {
+        mainImage: "assets/Lesson3/Matching1/m3.png",
+        choices: [
+          "assets/Lesson3/Matching1/m3_h (1).png",
+          "assets/Lesson3/Matching1/m3_h (2).png",
+          "assets/Lesson3/Matching1/m3_h (3)_OK.png"
+        ],
+        answer: "assets/Lesson3/Matching1/m3_h (3)_OK.png"
+      },
+      {
+        mainImage: "assets/Lesson3/Matching1/m4.png",
+        choices: [
+          "assets/Lesson3/Matching1/m4_h (1)_OK.png",
+          "assets/Lesson3/Matching1/m4_h (2).png",
+          "assets/Lesson3/Matching1/m4_h (3).png"
+        ],
+        answer: "assets/Lesson3/Matching1/m4_h (1)_OK.png"
+      }
+    ]
+  },
+
+  {
+    label: "🔍 Odd One Out",
+    isOddOneOut: true,
+    folder: "assets/Lesson3/OddOneOut",
+    rounds: [
+      {
+        images: [
+          "assets/Lesson3/OddOneOut/1_1.png",
+          "assets/Lesson3/OddOneOut/1_2.png",
+          "assets/Lesson3/OddOneOut/1_3.png",
+          "assets/Lesson3/OddOneOut/1_4.png"
+        ],
+        answer: "assets/Lesson3/OddOneOut/1_2.png"
+      },
+      {
+        images: [
+          "assets/Lesson3/OddOneOut/2_1.png",
+          "assets/Lesson3/OddOneOut/2_2.png",
+          "assets/Lesson3/OddOneOut/2_3.png",
+          "assets/Lesson3/OddOneOut/2_4.png"
+        ],
+        answer: "assets/Lesson3/OddOneOut/2_4.png"
+      }
     ]
   },
 
@@ -82,6 +158,7 @@ window.HOMEWORK_CONFIG = [
   //     }
   //   ]
   // },
+
 
   {
     label: "🌟 Set 3",
