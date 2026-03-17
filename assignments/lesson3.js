@@ -2,13 +2,23 @@
 // isLoadFromImage: false  → emoji-based round (patternRow + choices are text/emoji)
 // isLoadFromImage: true   → image-based round (patternImage + choices are image paths)
 window.HOMEWORK_CONFIG = [
+  // {
+  //   label: "⭐ Emoji",
+  //   isLoadFromImage: false,
+  //   rounds: [
+  //     { pattern: ["⭐","❤️","⭐","❤️","⭐","?"], answer: "❤️", choices: ["⭐","❤️","🌟"] },
+  //     { pattern: ["🍎","🍊","🔵","🍎","?","🔵"], answer: "🍊", choices: ["🍎","🍊","🔵"] },
+  //     { pattern: ["🌳","☀️","?","🌳","☀️","☀️"], answer: "☀️", choices: ["🌳","☀️","🌙"] }
+  //   ]
+  // },
   {
-    label: "⭐ Emoji",
+    label: "⭐ Emoji 2",
     isLoadFromImage: false,
     rounds: [
-      { pattern: ["⭐","❤️","⭐","❤️","⭐","?"], answer: "❤️", choices: ["⭐","❤️","🌟"] },
-      { pattern: ["🍎","🍊","🔵","🍎","?","🔵"], answer: "🍊", choices: ["🍎","🍊","🔵"] },
-      { pattern: ["🌳","☀️","?","🌳","☀️","☀️"], answer: "☀️", choices: ["🌳","☀️","🌙"] }
+      { pattern: ["🤖","?","🤖","🏗️","🤖","🏗️"], answer: "🏗️", choices: ["🤖","🏗️"] },
+      { pattern: ["🎂","🍔","?","🎂","🍔","🍔","🎂","🍔","🍔",], answer: "🍔", choices: ["🎂","🍔"] },
+      { pattern: ["🐰","🐰","🐢","🐢","?",], answer: "🐰", choices: ["🐢","🐰"] },
+      { pattern: ["🥤","🍷","🍸","🥤","?",], answer: "🍷", choices: ["🥤","🍷","🍸"] },
     ]
   },
 
