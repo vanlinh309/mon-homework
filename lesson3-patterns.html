@@ -4,6 +4,11 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
   <title>Pattern Power 🔴</title>
+  <meta name="description" content="Spot the pattern and tap the missing piece — a pattern recognition game for kids!">
+  <meta name="theme-color" content="#FFD700">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <link rel="manifest" href="manifest.json">
+  <link rel="icon" href="favicon.svg" type="image/svg+xml">
   <link rel="stylesheet" href="style.css">
   <script src="sounds.js"></script>
   <script src="sidebar.js"></script>
@@ -466,6 +471,7 @@ function loadHomework(idx) {
   stars        = 0;
   answered     = false;
   activeRounds = HOMEWORKS[idx].rounds;
+  saveProgress('lesson3', idx);
   document.getElementById('star-count').textContent = '0';
   document.getElementById('fireworks-overlay').classList.remove('show');
   renderSidebar(HOMEWORKS, currentHW, loadHomework);
@@ -629,12 +635,12 @@ function handleChoice(sym, btn) {
 
     stars++;
     document.getElementById('star-count').textContent = stars;
-    showFeedback('Great job! ⭐', 'correct');
+    showFeedback(randomCorrect(), 'correct');
     document.getElementById('next-btn').classList.add('show');
   } else {
     SFX.wrong();
     btn.classList.add('wrong-pick');
-    showFeedback('Try again! 🙈', 'wrong');
+    showFeedback(randomWrong(), 'wrong');
     setTimeout(() => {
       btn.classList.remove('wrong-pick');
       btn.disabled      = true;
@@ -676,25 +682,7 @@ function showFireworks() {
   spawnFireworks();
 }
 
-function spawnFireworks() {
-  const overlay = document.getElementById('fireworks-overlay');
-  const colors = ['#FF4757','#FFD700','#2ED573','#2F86EB','#A855F7','#FF69B4'];
-  for (let i = 0; i < 20; i++) {
-    setTimeout(() => {
-      const c = document.createElement('div');
-      c.className = 'firework-circle';
-      const size = 20 + Math.random() * 40;
-      c.style.cssText = `
-        width: ${size}px; height: ${size}px;
-        background: ${colors[Math.floor(Math.random()*colors.length)]};
-        left: ${Math.random()*100}%; top: ${Math.random()*100}%;
-        animation-duration: ${0.8 + Math.random()*0.8}s;
-      `;
-      overlay.appendChild(c);
-      setTimeout(() => c.remove(), 1800);
-    }, i * 80);
-  }
-}
+// spawnFireworks is provided globally by nav.js
 
 function restartGame() {
   document.getElementById('fireworks-overlay').classList.remove('show');
@@ -703,9 +691,7 @@ function restartGame() {
 
 // Init
 HOMEWORKS = HOMEWORK_CONFIG;
-activeRounds = HOMEWORKS[0].rounds;
-renderSidebar(HOMEWORKS, currentHW, loadHomework);
-showRound();
+loadHomework(getProgress('lesson3'));
 </script>
 </body>
 </html>

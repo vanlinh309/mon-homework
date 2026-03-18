@@ -4,12 +4,29 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
   <title>Mon's Learning Games 🌟</title>
+  <meta name="description" content="Fun interactive learning games for kids — Shadow Matching, Mazes, Patterns, Counting and Shape Coloring!">
+  <meta name="theme-color" content="#2F86EB">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="Mon Games">
+  <link rel="manifest" href="manifest.json">
+  <link rel="icon" href="favicon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="favicon.svg">
   <link rel="stylesheet" href="style.css">
   <style>
     body {
       background: linear-gradient(160deg, #FFF0FB 0%, #FFF9F0 40%, #F0F8FF 100%);
       min-height: 100vh;
+      position: relative;
     }
+    #float-bg {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      overflow: hidden;
+      z-index: 0;
+    }
+    .top-bar, .hero, .home-grid { position: relative; z-index: 1; }
 
     /* Hero */
     .hero {
@@ -108,6 +125,9 @@
   </style>
 </head>
 <body>
+  <!-- Floating background emojis -->
+  <div id="float-bg" aria-hidden="true"></div>
+
   <div class="top-bar">
     <span style="font-size:1.5rem;">🎓</span>
     <h1>Mon's Learning Games</h1>
@@ -154,5 +174,23 @@
   </div>
 
   <script src="nav.js"></script>
+  <script>
+    // Spawn floating background emojis
+    (function() {
+      const bg = document.getElementById('float-bg');
+      const items = ['⭐','🌟','✨','🎈','🎉','💫','🏆','🎊','❤️','🌈','🎶','🍀'];
+      for (let i = 0; i < 14; i++) {
+        const el = document.createElement('span');
+        el.className = 'float-emoji';
+        el.textContent = items[i % items.length];
+        const left = 3 + (i * 6.8) % 93;
+        const top  = 8 + (i * 13) % 80;
+        const dur  = 3.5 + (i % 5) * 0.8;
+        const delay = -(i * 0.55);
+        el.style.cssText = `left:${left}%;top:${top}%;animation-duration:${dur}s;animation-delay:${delay}s;font-size:${1.6 + (i%3)*0.5}rem;`;
+        bg.appendChild(el);
+      }
+    })();
+  </script>
 </body>
 </html>

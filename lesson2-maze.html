@@ -4,6 +4,11 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
   <title>Maze Adventure 🐾</title>
+  <meta name="description" content="Draw a path through the maze to help the animal reach its goal!">
+  <meta name="theme-color" content="#2ED573">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <link rel="manifest" href="manifest.json">
+  <link rel="icon" href="favicon.svg" type="image/svg+xml">
   <link rel="stylesheet" href="style.css">
   <script src="sounds.js"></script>
   <script src="sidebar.js"></script>
@@ -92,8 +97,6 @@
       box-shadow: var(--shadow);
       background: #fff;
       touch-action: none;
-      /* leave room for bottom nav bar */
-      margin-bottom: 70px;
     }
 
     /* The maze image fills the container */
@@ -174,6 +177,7 @@ let currentHW = 0;
 
 function loadHomework(idx) {
   currentHW = idx;
+  saveProgress('lesson2', idx);
   renderSidebar(HOMEWORKS, currentHW, loadHomework);
   document.getElementById('maze-img').src = HOMEWORKS[idx].image;
   clearDrawing();
@@ -192,17 +196,21 @@ let drawSoundTimer = 0;
 
 function resizeCanvas() {
   const wrap = document.getElementById('maze-wrap');
-  drawCanvas.width  = wrap.clientWidth;
-  drawCanvas.height = wrap.clientHeight;
+  const dpr  = window.devicePixelRatio || 1;
+  const cssW = wrap.clientWidth;
+  const cssH = wrap.clientHeight;
+  if (!cssW || !cssH) return;
+  drawCanvas.width  = Math.round(cssW * dpr);
+  drawCanvas.height = Math.round(cssH * dpr);
+  // Scale context so all drawing coordinates stay in CSS-pixel space
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
 }
 
 function getPos(e) {
   const rect = drawCanvas.getBoundingClientRect();
-  const scaleX = drawCanvas.width  / rect.width;
-  const scaleY = drawCanvas.height / rect.height;
   return {
-    x: (e.clientX - rect.left) * scaleX,
-    y: (e.clientY - rect.top)  * scaleY,
+    x: e.clientX - rect.left,
+    y: e.clientY - rect.top,
   };
 }
 
@@ -271,13 +279,18 @@ function clearDrawing() {
   ctx.clearRect(0, 0, drawCanvas.width, drawCanvas.height);
 }
 
-window.addEventListener('resize', resizeCanvas);
-window.addEventListener('load',   resizeCanvas);
+// Resize when window resizes or sidebar opens/closes (ResizeObserver handles both)
+if (typeof ResizeObserver !== 'undefined') {
+  new ResizeObserver(() => requestAnimationFrame(resizeCanvas))
+    .observe(document.getElementById('maze-wrap'));
+} else {
+  window.addEventListener('resize', resizeCanvas);
+}
+window.addEventListener('load', () => requestAnimationFrame(resizeCanvas));
 
 // Init
 HOMEWORKS = HOMEWORK_CONFIG;
-renderSidebar(HOMEWORKS, currentHW, loadHomework);
-document.getElementById('maze-img').src = HOMEWORKS[0].image;
+loadHomework(getProgress('lesson2'));
 </script>
 </body>
 </html>

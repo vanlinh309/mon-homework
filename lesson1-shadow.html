@@ -4,6 +4,11 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
   <title>Shadow Match 🚌</title>
+  <meta name="description" content="Match each object to its shadow by drawing a line — a fun game for kids!">
+  <meta name="theme-color" content="#2F86EB">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <link rel="manifest" href="manifest.json">
+  <link rel="icon" href="favicon.svg" type="image/svg+xml">
   <link rel="stylesheet" href="style.css">
   <script src="sounds.js"></script>
   <script src="sidebar.js"></script>
@@ -169,6 +174,7 @@ function loadHomework(idx) {
   currentHW    = idx;
   currentRound = 0;
   stars        = 0;
+  saveProgress('lesson1', idx);
   document.getElementById('star-count').textContent = '0';
   document.getElementById('fireworks-overlay').classList.remove('show');
   renderSidebar(HOMEWORKS, currentHW, loadHomework);
@@ -296,7 +302,7 @@ wrap.addEventListener('pointerup', e => {
     document.getElementById('shd-' + dragFromId).classList.add('matched-correct');
     stars++;
     document.getElementById('star-count').textContent = stars;
-    showFeedback('Great job! ⭐', 'correct');
+    showFeedback(randomCorrect(), 'correct');
     redrawLines();
     if (totalMatched === pairs.length) {
       setTimeout(() => {
@@ -310,7 +316,7 @@ wrap.addEventListener('pointerup', e => {
     const toEl = document.getElementById('shd-' + hitId);
     redrawLines();
     drawLine(dragStart, centerOf(toEl), '#FF4757', 5);
-    showFeedback('Try again! 🙈', 'wrong');
+    showFeedback(randomWrong(), 'wrong');
     setTimeout(() => { redrawLines(); clearFeedback(); }, 700);
   } else {
     redrawLines();
@@ -334,6 +340,7 @@ function clearFeedback() {
 function nextRound() {
   currentRound++;
   if (currentRound >= TOTAL_ROUNDS) {
+    SFX.celebrate();
     document.getElementById('fw-msg').textContent = `🎉 You matched everything! ${stars} stars! 🌟`;
     document.getElementById('fireworks-overlay').classList.add('show');
     spawnFireworks();
@@ -347,27 +354,11 @@ function restartGame() {
   document.getElementById('star-count').textContent = '0';
   showRound();
 }
-function spawnFireworks() {
-  const overlay = document.getElementById('fireworks-overlay');
-  const colors = ['#FF4757','#FFD700','#2ED573','#2F86EB','#A855F7','#FF69B4'];
-  for (let i = 0; i < 20; i++) {
-    setTimeout(() => {
-      const c = document.createElement('div');
-      c.className = 'firework-circle';
-      const sz = 20 + Math.random() * 40;
-      c.style.cssText = `width:${sz}px;height:${sz}px;background:${colors[Math.floor(Math.random()*colors.length)]};left:${Math.random()*100}%;top:${Math.random()*100}%;animation-duration:${0.8+Math.random()*0.8}s;`;
-      overlay.appendChild(c);
-      setTimeout(() => c.remove(), 1800);
-    }, i * 80);
-  }
-}
-
 window.addEventListener('resize', () => { resizeCanvas(); redrawLines(); });
 
 // Init
 HOMEWORKS = HOMEWORK_CONFIG;
-renderSidebar(HOMEWORKS, currentHW, loadHomework);
-showRound();
+loadHomework(getProgress('lesson1'));
 </script>
 </body>
 </html>

@@ -1,0 +1,20 @@
+{
+  "name": "Mon's Learning Games",
+  "short_name": "Mon Games",
+  "description": "Fun interactive learning games for kids — Patterns, Counting, Mazes and more!",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#FFF9F0",
+  "theme_color": "#2F86EB",
+  "icons": [
+    {
+      "src": "favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    }
+  ],
+  "categories": ["education", "kids", "games"],
+  "screenshots": []
+}

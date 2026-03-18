@@ -4,6 +4,11 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
   <title>Color Shapes 🎨</title>
+  <meta name="description" content="Tap shapes to color them correctly — a shape-coloring game for kids!">
+  <meta name="theme-color" content="#A855F7">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <link rel="manifest" href="manifest.json">
+  <link rel="icon" href="favicon.svg" type="image/svg+xml">
   <link rel="stylesheet" href="style.css">
   <script src="sounds.js"></script>
   <script src="sidebar.js"></script>
@@ -234,6 +239,7 @@ function loadHomework(idx) {
   activeScenes    = HOMEWORKS[idx].scenes;
   currentSceneIdx = 0;
   stars           = 0;
+  saveProgress('lesson5', idx);
   document.getElementById('star-count').textContent = '0';
   document.getElementById('fireworks-overlay').classList.remove('show');
   renderSidebar(HOMEWORKS, currentHW, loadHomework);
@@ -373,20 +379,7 @@ function showFireworks() {
   spawnFireworks();
 }
 
-function spawnFireworks() {
-  const overlay = document.getElementById('fireworks-overlay');
-  const colors = ['#FF4757','#FFD700','#2ED573','#2F86EB','#A855F7','#FF69B4'];
-  for (let i = 0; i < 18; i++) {
-    setTimeout(() => {
-      const c = document.createElement('div');
-      c.className = 'firework-circle';
-      const size = 20 + Math.random() * 40;
-      c.style.cssText = `width:${size}px;height:${size}px;background:${colors[Math.floor(Math.random()*colors.length)]};left:${Math.random()*100}%;top:${Math.random()*100}%;animation-duration:${0.8+Math.random()*0.8}s;`;
-      overlay.appendChild(c);
-      setTimeout(() => c.remove(), 1800);
-    }, i * 80);
-  }
-}
+// spawnFireworks is provided globally by nav.js
 
 function nextScene() {
   document.getElementById('fireworks-overlay').classList.remove('show');
@@ -420,9 +413,7 @@ function clearFeedback() {
 
 // Init
 HOMEWORKS = HOMEWORK_CONFIG;
-activeScenes = HOMEWORKS[0].scenes;
-renderSidebar(HOMEWORKS, currentHW, loadHomework);
-renderScene();
+loadHomework(getProgress('lesson5'));
 </script>
 </body>
 </html>
