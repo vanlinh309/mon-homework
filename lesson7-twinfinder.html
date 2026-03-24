@@ -1,0 +1,525 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Twin Finder! 🕵️</title>
+  <meta name="description" content="Find the differences between two pictures and circle them!">
+  <meta name="theme-color" content="#A855F7">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <link rel="manifest" href="manifest.json">
+  <link rel="icon" href="favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="style.css">
+  <script src="sounds.js"></script>
+  <script src="sidebar.js"></script>
+  <script src="nav.js"></script>
+  <script src="assignments/lesson7.js"></script>
+  <style>
+    body { background: linear-gradient(135deg, #F3E8FF, #FFF9F0); }
+
+    main {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 12px 12px 24px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .instruction {
+      font-size: 1.05rem;
+      color: #555;
+      text-align: center;
+    }
+
+    /* ── Two images side by side ── */
+    .images-row {
+      display: flex;
+      gap: 10px;
+      width: 100%;
+    }
+
+    .image-panel {
+      flex: 1;
+      position: relative;
+      border-radius: 14px;
+      overflow: hidden;
+      box-shadow: var(--shadow);
+      background: #eee;
+      cursor: crosshair;
+    }
+
+    .image-panel img {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      pointer-events: none;
+      user-select: none;
+      -webkit-user-drag: none;
+    }
+
+    .draw-canvas {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      border-radius: 14px;
+      touch-action: none;
+    }
+
+    /* ── Toolbar ── */
+    .toolbar {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+      justify-content: center;
+      background: #fff;
+      border-radius: 50px;
+      padding: 10px 20px;
+      box-shadow: var(--shadow);
+    }
+
+    .color-dot {
+      width: 38px;
+      height: 38px;
+      border-radius: 50%;
+      border: 3px solid transparent;
+      cursor: pointer;
+      touch-action: manipulation;
+      transition: transform 0.15s, border-color 0.15s;
+      flex-shrink: 0;
+    }
+    .color-dot:active  { transform: scale(0.88); }
+    .color-dot.active  { border-color: #333; transform: scale(1.15); }
+
+    .tool-btn {
+      height: 38px;
+      padding: 0 16px;
+      border-radius: 50px;
+      border: 2px solid #ddd;
+      background: #fff;
+      font-family: var(--font-main);
+      font-size: 0.95rem;
+      font-weight: bold;
+      cursor: pointer;
+      touch-action: manipulation;
+      transition: background 0.15s, border-color 0.15s, transform 0.1s;
+      white-space: nowrap;
+    }
+    .tool-btn:active { transform: scale(0.93); }
+    .tool-btn.active {
+      background: #F3E8FF;
+      border-color: var(--color-purple);
+      color: var(--color-purple);
+    }
+
+    .toolbar-sep {
+      width: 1px;
+      height: 30px;
+      background: #ddd;
+      flex-shrink: 0;
+    }
+
+    .btn-clear {
+      border-color: var(--color-orange);
+      color: var(--color-orange);
+    }
+    .btn-clear:hover { background: #FFF3E0; }
+
+    .btn-done {
+      background: linear-gradient(135deg, var(--color-purple), var(--color-pink));
+      color: #fff;
+      border-color: transparent;
+      padding: 0 22px;
+      font-size: 1rem;
+    }
+    .btn-done:hover { opacity: 0.9; }
+
+    /* ── Nav row ── */
+    .nav-row {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+
+    .btn-nav {
+      font-size: 1.05rem;
+      padding: 10px 24px;
+      border-radius: 50px;
+      background: #fff;
+      border: 3px solid var(--color-purple);
+      color: var(--color-purple);
+      font-family: var(--font-main);
+      font-weight: bold;
+      cursor: pointer;
+      touch-action: manipulation;
+      transition: background 0.15s, color 0.15s, transform 0.1s;
+      min-width: 90px;
+    }
+    .btn-nav:active { transform: scale(0.93); }
+    .btn-nav:hover  { background: var(--color-purple); color: #fff; }
+    .btn-nav:disabled { opacity: 0.3; pointer-events: none; }
+
+    .hw-counter {
+      font-size: 1rem;
+      font-weight: bold;
+      color: #888;
+      min-width: 56px;
+      text-align: center;
+    }
+
+@media (max-width: 520px) {
+      .images-row { gap: 6px; }
+      .toolbar    { padding: 8px 12px; gap: 8px; }
+      .color-dot  { width: 32px; height: 32px; }
+      .tool-btn   { font-size: 0.85rem; padding: 0 12px; height: 34px; }
+    }
+  </style>
+</head>
+<body class="lesson-body">
+
+<div class="top-bar">
+  <button class="btn-home" onclick="location.href='index.html'">🏠 Home</button>
+  <h1>Twin Finder! 🕵️</h1>
+  <div class="star-bar">⭐ <span id="star-count">0</span></div>
+</div>
+
+<div class="app-layout">
+
+  <!-- Sidebar -->
+  <div class="sidebar" id="sidebar">
+    <button class="sidebar-toggle" id="sidebar-toggle" onclick="toggleSidebar()">›</button>
+    <div class="sidebar-inner">
+      <div class="sidebar-title">Homework</div>
+      <div class="hw-list" id="hw-list"></div>
+    </div>
+  </div>
+
+  <!-- Main content -->
+  <div class="lesson-scroll no-scroll">
+    <main>
+      <div class="instruction">Circle the differences you find! Draw on either picture 🔍</div>
+
+      <!-- Left + Right images -->
+      <div class="images-row" id="images-row">
+        <div class="image-panel" id="panel-left">
+          <img id="img-left" src="" alt="Left">
+          <canvas id="canvas-left" class="draw-canvas"></canvas>
+        </div>
+        <div class="image-panel" id="panel-right">
+          <img id="img-right" src="" alt="Right">
+          <canvas id="canvas-right" class="draw-canvas"></canvas>
+        </div>
+      </div>
+
+      <!-- Toolbar -->
+      <div class="toolbar">
+        <!-- Color picker -->
+        <div class="color-dot active" style="background:#FF4757;" data-color="#FF4757" onclick="setColor(this)"></div>
+        <div class="color-dot"        style="background:#2F86EB;" data-color="#2F86EB" onclick="setColor(this)"></div>
+        <div class="color-dot"        style="background:#2ED573;" data-color="#2ED573" onclick="setColor(this)"></div>
+        <div class="color-dot"        style="background:#FFD700;" data-color="#FFD700" onclick="setColor(this)"></div>
+
+        <div class="toolbar-sep"></div>
+
+        <!-- Eraser -->
+        <button class="tool-btn" id="btn-eraser" onclick="toggleEraser()">🧹 Eraser</button>
+
+        <!-- Clear -->
+        <button class="tool-btn btn-clear" onclick="clearAll()">🗑️ Clear</button>
+
+        <div class="toolbar-sep"></div>
+
+        <!-- Done -->
+        <button class="tool-btn btn-done" onclick="celebrate()">🎉 Well Done!</button>
+      </div>
+
+      <!-- Prev / counter / Next -->
+      <div class="nav-row">
+        <button class="btn-nav" id="btn-prev" onclick="goTo(currentPair - 1)">◀ Prev</button>
+        <div class="hw-counter" id="hw-counter">1 / 1</div>
+        <button class="btn-nav" id="btn-next" onclick="goTo(currentPair + 1)">Next ▶</button>
+      </div>
+    </main>
+  </div>
+
+</div><!-- end app-layout -->
+
+<!-- Fireworks — transparent, non-blocking -->
+<div id="fireworks-overlay" style="pointer-events:none; background:transparent !important;"></div>
+
+<script>
+let HOMEWORKS  = [];
+let currentHW  = 0;
+let currentPair = 0;
+let stars       = 0;
+
+// ── Drawing state ──
+const PEN_SIZE    = 4;
+const ERASER_SIZE = 24;
+let penColor  = '#FF4757';
+let isEraser  = false;
+let isDrawing = false;
+let lastRel   = { x: 0, y: 0 };
+let activeCanvas, otherCanvas;
+let strokes   = []; // { points:[{x,y}], color, size, eraser }
+let curStroke = null;
+
+// ── Canvas refs (set after DOM ready) ──
+let canvasL, canvasR, ctxL, ctxR;
+
+// ── Load a set from the sidebar ──
+function loadHomework(idx) {
+  if (idx < 0 || idx >= HOMEWORKS.length) return;
+  currentHW   = idx;
+  currentPair = 0;
+  stars       = 0;
+  document.getElementById('star-count').textContent = '0';
+  saveProgress('lesson7', idx);
+  renderSidebar(HOMEWORKS, currentHW, loadHomework);
+  loadPair();
+  updateNav();
+}
+
+// ── Load a pair within the current set ──
+function loadPair() {
+  const pair   = HOMEWORKS[currentHW].pairs[currentPair];
+  const imgL   = document.getElementById('img-left');
+  const imgR   = document.getElementById('img-right');
+  const panelL = document.getElementById('panel-left');
+  const panelR = document.getElementById('panel-right');
+
+  strokes   = [];
+  curStroke = null;
+
+  // Give panels a placeholder height while loading (images are absolute so won't stretch panel)
+  panelL.style.height = '200px';
+  panelR.style.height = '200px';
+
+  let pending = 2;
+  const onLoaded = () => { if (--pending === 0) requestAnimationFrame(equalizePanels); };
+
+  imgL.onload = imgL.onerror = onLoaded;
+  imgR.onload = imgR.onerror = onLoaded;
+  imgL.src = pair.left;
+  imgR.src = pair.right;
+}
+
+// ── Set both panels to identical height so both images appear at the same scale ──
+function equalizePanels() {
+  const imgL   = document.getElementById('img-left');
+  const imgR   = document.getElementById('img-right');
+  const panelL = document.getElementById('panel-left');
+  const panelR = document.getElementById('panel-right');
+
+  if (!imgL.naturalWidth || !imgR.naturalWidth) return;
+
+  const w = panelL.offsetWidth;
+  if (w === 0) { requestAnimationFrame(equalizePanels); return; }
+
+  // Height each image would fill at panel width (maintaining its own aspect ratio)
+  const hL = Math.round(w * imgL.naturalHeight / imgL.naturalWidth);
+  const hR = Math.round(w * imgR.naturalHeight / imgR.naturalWidth);
+  const h  = Math.max(hL, hR); // both panels get the taller height
+
+  panelL.style.height = h + 'px';
+  panelR.style.height = h + 'px';
+
+  // Size canvases after layout is committed
+  requestAnimationFrame(() => {
+    sizeCanvas(canvasL, panelL);
+    sizeCanvas(canvasR, panelR);
+    redraw();
+  });
+}
+
+// ── Size a canvas to match its panel ──
+function sizeCanvas(canvas, panel) {
+  const rect = panel.getBoundingClientRect();
+  if (rect.width === 0 || rect.height === 0) return;
+  canvas.width  = Math.round(rect.width);
+  canvas.height = Math.round(rect.height);
+}
+
+// ── Redraw all strokes on both canvases ──
+function redraw() {
+  [canvasL, canvasR].forEach(c => {
+    const ctx = c.getContext('2d');
+    ctx.clearRect(0, 0, c.width, c.height);
+    strokes.forEach(s => drawStroke(ctx, c, s));
+    if (curStroke) drawStroke(ctx, c, curStroke);
+  });
+}
+
+function drawStroke(ctx, canvas, s) {
+  if (s.points.length < 1) return;
+  ctx.save();
+  if (s.eraser) {
+    ctx.globalCompositeOperation = 'destination-out';
+    ctx.strokeStyle = 'rgba(0,0,0,1)';
+    ctx.lineWidth   = s.size;
+  } else {
+    ctx.globalCompositeOperation = 'source-over';
+    ctx.strokeStyle = s.color;
+    ctx.lineWidth   = s.size;
+  }
+  ctx.lineCap  = 'round';
+  ctx.lineJoin = 'round';
+  ctx.beginPath();
+  ctx.moveTo(s.points[0].x * canvas.width, s.points[0].y * canvas.height);
+  for (let i = 1; i < s.points.length; i++) {
+    ctx.lineTo(s.points[i].x * canvas.width, s.points[i].y * canvas.height);
+  }
+  if (s.points.length === 1) {
+    // single dot
+    ctx.arc(
+      s.points[0].x * canvas.width,
+      s.points[0].y * canvas.height,
+      s.size / 2, 0, Math.PI * 2
+    );
+    ctx.fill();
+  } else {
+    ctx.stroke();
+  }
+  ctx.restore();
+}
+
+// ── Get relative position (0-1) within a canvas ──
+function relPos(canvas, e) {
+  const r  = canvas.getBoundingClientRect();
+  const cx = e.touches ? e.touches[0].clientX : e.clientX;
+  const cy = e.touches ? e.touches[0].clientY : e.clientY;
+  return {
+    x: Math.max(0, Math.min(1, (cx - r.left) / r.width)),
+    y: Math.max(0, Math.min(1, (cy - r.top)  / r.height))
+  };
+}
+
+// ── Pointer event handlers ──
+function onDown(e, isLeft) {
+  e.preventDefault();
+  isDrawing    = true;
+  activeCanvas = isLeft ? canvasL : canvasR;
+  otherCanvas  = isLeft ? canvasR : canvasL;
+  const pos    = relPos(activeCanvas, e);
+  lastRel      = pos;
+  curStroke    = {
+    points: [pos],
+    color:  penColor,
+    size:   isEraser ? ERASER_SIZE : PEN_SIZE,
+    eraser: isEraser
+  };
+  SFX.draw();
+  redraw();
+}
+
+function onMove(e) {
+  e.preventDefault();
+  if (!isDrawing || !curStroke) return;
+  const pos = relPos(activeCanvas, e);
+  // Avoid duplicate points
+  const last = curStroke.points[curStroke.points.length - 1];
+  if (Math.abs(pos.x - last.x) < 0.002 && Math.abs(pos.y - last.y) < 0.002) return;
+  curStroke.points.push(pos);
+  lastRel = pos;
+  redraw();
+}
+
+function onUp(e) {
+  if (!isDrawing) return;
+  isDrawing = false;
+  if (curStroke && curStroke.points.length > 0) {
+    strokes.push(curStroke);
+  }
+  curStroke = null;
+  redraw();
+}
+
+// ── Tool controls ──
+function setColor(dotEl) {
+  penColor = dotEl.dataset.color;
+  isEraser = false;
+  document.querySelectorAll('.color-dot').forEach(d => d.classList.remove('active'));
+  dotEl.classList.add('active');
+  document.getElementById('btn-eraser').classList.remove('active');
+}
+
+function toggleEraser() {
+  isEraser = !isEraser;
+  document.getElementById('btn-eraser').classList.toggle('active', isEraser);
+  document.querySelectorAll('.color-dot').forEach(d => d.classList.toggle('active', !isEraser && d.dataset.color === penColor));
+  SFX.click();
+}
+
+function clearAll() {
+  strokes   = [];
+  curStroke = null;
+  SFX.click();
+  redraw();
+}
+
+function celebrate() {
+  stars++;
+  document.getElementById('star-count').textContent = stars;
+  SFX.celebrate();
+  const overlay = document.getElementById('fireworks-overlay');
+  overlay.classList.add('show');
+  spawnFireworks();
+  setTimeout(() => {
+    overlay.classList.remove('show');
+    overlay.innerHTML = '';
+  }, 2500);
+}
+
+// ── Navigation ──
+function goTo(idx) {
+  const total = HOMEWORKS[currentHW].pairs.length;
+  if (idx < 0 || idx >= total) return;
+  SFX.click();
+  currentPair = idx;
+  loadPair();
+  updateNav();
+}
+
+function updateNav() {
+  const total = HOMEWORKS[currentHW].pairs.length;
+  document.getElementById('btn-prev').disabled     = currentPair === 0;
+  document.getElementById('btn-next').disabled     = currentPair === total - 1;
+  document.getElementById('hw-counter').textContent = `${currentPair + 1} / ${total}`;
+}
+
+// ── Attach pointer events to both canvases ──
+document.addEventListener('DOMContentLoaded', () => {
+  canvasL = document.getElementById('canvas-left');
+  canvasR = document.getElementById('canvas-right');
+  ctxL    = canvasL.getContext('2d');
+  ctxR    = canvasR.getContext('2d');
+
+  canvasL.addEventListener('pointerdown',  e => onDown(e, true),  { passive: false });
+  canvasR.addEventListener('pointerdown',  e => onDown(e, false), { passive: false });
+  window.addEventListener('pointermove',   onMove,                 { passive: false });
+  window.addEventListener('pointerup',     onUp);
+  window.addEventListener('pointercancel', onUp);
+
+  // Also support touch (for older iOS)
+  canvasL.addEventListener('touchstart',  e => onDown(e, true),  { passive: false });
+  canvasR.addEventListener('touchstart',  e => onDown(e, false), { passive: false });
+  window.addEventListener('touchmove',    onMove,                 { passive: false });
+  window.addEventListener('touchend',     onUp,                   { passive: false });
+
+  // Resize canvases if window resizes
+  window.addEventListener('resize', () => {
+    equalizePanels();
+  });
+
+  // Init
+  HOMEWORKS = HOMEWORK_CONFIG;
+  loadHomework(getProgress('lesson7'));
+});
+</script>
+</body>
+</html>

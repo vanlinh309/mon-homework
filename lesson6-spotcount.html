@@ -1,0 +1,486 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+  <title>Spot &amp; Count! 🔍</title>
+  <meta name="description" content="Find and count each group of objects hidden in the picture!">
+  <meta name="theme-color" content="#00BCD4">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <link rel="manifest" href="manifest.json">
+  <link rel="icon" href="favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="style.css">
+  <script src="sounds.js"></script>
+  <script src="sidebar.js"></script>
+  <script src="nav.js"></script>
+  <script src="assignments/lesson6.js"></script>
+  <style>
+    body { background: linear-gradient(135deg, #E0F7FA, #FFF9F0); }
+
+    main {
+      max-width: 800px;
+      margin: 0 auto;
+      padding: 14px 16px 24px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 16px;
+    }
+
+    .instruction {
+      font-size: 1.1rem;
+      color: #555;
+      text-align: center;
+    }
+
+    /* ── Scene container ── */
+    .scene-wrap {
+      position: relative;
+      width: 100%;
+      border-radius: 18px;
+      box-shadow: var(--shadow);
+      background: #f0f0f0;
+      overflow: visible; /* let panel peek above image */
+    }
+
+    .scene-img {
+      width: 100%;
+      display: block;
+      border-radius: 18px;
+      /* push image down so the group panel doesn't overlap it */
+      padding-top: 136px;
+    }
+
+    /* ── Group panel — overlaid at the top of the image ── */
+    .group-panel {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      background: rgba(255, 255, 255, 0.93);
+      backdrop-filter: blur(6px);
+      -webkit-backdrop-filter: blur(6px);
+      border-radius: 18px 18px 0 0;
+      border-bottom: 2px solid rgba(0, 0, 0, 0.07);
+      padding: 10px 12px;
+      display: flex;
+      gap: 12px;
+      justify-content: center;
+      flex-wrap: wrap;
+      z-index: 2;
+    }
+
+    /* ── Each object group row: [thumbnail] [input] ── */
+    .group-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 16px;
+    }
+
+    /* vertical divider between items */
+    .group-item + .group-item {
+      border-left: 2px solid rgba(0, 0, 0, 0.15);
+    }
+
+    .group-item.correct .count-input {
+      color: var(--color-green);
+    }
+
+    @keyframes item-pop {
+      0%   { transform: scale(1); }
+      40%  { transform: scale(1.22); }
+      70%  { transform: scale(0.93); }
+      100% { transform: scale(1); }
+    }
+    .group-item.correct { animation: item-pop 0.4s ease; }
+
+    .group-item.wrong { animation: shake 0.5s; }
+
+    /* wrong flash on input */
+    @keyframes wrong-flash {
+      0%, 100% { background: #fff; }
+      30%      { background: #FFD0D0; }
+    }
+    .count-input.flashing { animation: wrong-flash 0.5s ease; }
+
+    /* floating feedback emoji (correct ⭐ / wrong ❌) */
+    .float-emoji-feedback {
+      position: fixed;
+      pointer-events: none;
+      font-size: 1.8rem;
+      z-index: 9999;
+      animation: float-up 0.9s ease forwards;
+    }
+    @keyframes float-up {
+      0%   { opacity: 1; transform: translateY(0)   scale(1);    }
+      80%  { opacity: 1; transform: translateY(-70px) scale(1.2); }
+      100% { opacity: 0; transform: translateY(-90px) scale(0.8); }
+    }
+
+    /* mini confetti star */
+    .mini-star {
+      position: fixed;
+      pointer-events: none;
+      font-size: 1.4rem;
+      z-index: 9999;
+      animation: mini-burst 0.8s ease forwards;
+    }
+    @keyframes mini-burst {
+      0%   { opacity: 1; transform: translate(0, 0)          scale(1);   }
+      100% { opacity: 0; transform: var(--tx, translate(0,0)) scale(0.4); }
+    }
+
+    .group-img {
+      width: 100px;
+      height: 100px;
+      object-fit: contain;
+      border-radius: 10px;
+      flex-shrink: 0;
+    }
+
+    .count-input {
+      width: 64px;
+      height: 64px;
+      font-size: 1.9rem;
+      font-family: var(--font-main);
+      font-weight: 900;
+      text-align: center;
+      border: 3px solid #ddd;
+      border-radius: 12px;
+      color: #333;
+      background: #fff;
+      outline: none;
+      transition: border-color 0.2s, box-shadow 0.2s;
+      /* hide the spin arrows */
+      -moz-appearance: textfield;
+    }
+    .count-input::-webkit-outer-spin-button,
+    .count-input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+    .count-input:focus {
+      border-color: var(--color-blue);
+      box-shadow: 0 0 0 3px rgba(47, 134, 235, 0.2);
+    }
+    .count-input:disabled {
+      background: #e8fff0;
+      border-color: var(--color-green);
+      color: var(--color-green);
+      cursor: default;
+    }
+
+    .group-check {
+      font-size: 1.3rem;
+      display: none;
+    }
+    .group-item.correct .group-check { display: block; }
+
+    /* ── Check button ── */
+    .btn-check {
+      font-size: 1.25rem;
+      padding: 14px 44px;
+      border-radius: 50px;
+      background: linear-gradient(135deg, #00BCD4, #2F86EB);
+      color: #fff;
+      border: none;
+      font-family: var(--font-main);
+      font-weight: bold;
+      cursor: pointer;
+      touch-action: manipulation;
+      box-shadow: 0 4px 0 rgba(0, 0, 0, 0.15);
+      transition: transform 0.1s, box-shadow 0.1s;
+    }
+    .btn-check:active {
+      transform: translateY(2px);
+      box-shadow: 0 2px 0 rgba(0, 0, 0, 0.15);
+    }
+
+    /* ── Prev / Next navigation ── */
+    .nav-row {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+
+    .btn-nav {
+      font-size: 1.05rem;
+      padding: 12px 26px;
+      border-radius: 50px;
+      background: #fff;
+      border: 3px solid var(--color-blue);
+      color: var(--color-blue);
+      font-family: var(--font-main);
+      font-weight: bold;
+      cursor: pointer;
+      touch-action: manipulation;
+      transition: background 0.15s, color 0.15s, transform 0.1s;
+      min-width: 100px;
+    }
+    .btn-nav:active  { transform: scale(0.93); }
+    .btn-nav:hover   { background: var(--color-blue); color: #fff; }
+    .btn-nav:disabled {
+      opacity: 0.3;
+      pointer-events: none;
+    }
+
+    .hw-counter {
+      font-size: 1rem;
+      font-weight: bold;
+      color: #888;
+      min-width: 56px;
+      text-align: center;
+    }
+
+    /* ── Responsive ── */
+    @media (max-width: 520px) {
+      .group-img   { width: 80px; height: 80px; }
+      .count-input { width: 60px; height: 60px; font-size: 1.5rem; }
+      .group-panel { gap: 8px; padding: 8px; }
+      .scene-img   { padding-top: 110px; }
+      .btn-nav     { padding: 10px 18px; font-size: 0.95rem; min-width: 80px; }
+    }
+  </style>
+</head>
+<body class="lesson-body">
+
+<div class="top-bar">
+  <button class="btn-home" onclick="location.href='index.html'">🏠 Home</button>
+  <h1>Spot &amp; Count! 🔍</h1>
+  <div class="star-bar">⭐ <span id="star-count">0</span></div>
+</div>
+
+<div class="app-layout">
+
+  <!-- Sidebar -->
+  <div class="sidebar" id="sidebar">
+    <button class="sidebar-toggle" id="sidebar-toggle" onclick="toggleSidebar()">›</button>
+    <div class="sidebar-inner">
+      <div class="sidebar-title">Homework</div>
+      <div class="hw-list" id="hw-list"></div>
+    </div>
+  </div>
+
+  <!-- Main content -->
+  <div class="lesson-scroll">
+    <main>
+      <div class="instruction">Find and count each object in the big picture! 🔍</div>
+
+      <!-- Scene: main image + group overlay -->
+      <div class="scene-wrap" id="scene-wrap">
+        <!-- Group panel sits on top of the image -->
+        <div class="group-panel" id="group-panel"></div>
+        <img id="scene-img" class="scene-img" src="" alt="Find and count!">
+      </div>
+
+      <!-- Check button -->
+      <button class="btn-check" id="btn-check" onclick="checkAnswers()">
+        ✅ Check my answers!
+      </button>
+
+      <!-- Prev / counter / Next -->
+      <div class="nav-row">
+        <button class="btn-nav" id="btn-prev" onclick="goTo(currentImg - 1)">◀ Prev</button>
+        <div class="hw-counter" id="hw-counter">1 / 1</div>
+        <button class="btn-nav" id="btn-next" onclick="goTo(currentImg + 1)">Next ▶</button>
+      </div>
+    </main>
+  </div>
+
+</div><!-- end app-layout -->
+
+<!-- Fireworks — transparent overlay so the page stays visible -->
+<div id="fireworks-overlay" style="pointer-events:none; background:transparent !important;"></div>
+
+<script>
+let HOMEWORKS   = [];
+let currentHW   = 0;  // which set (sidebar)
+let currentImg  = 0;  // which image within the set (Prev/Next)
+let stars       = 0;
+let groupStates = []; // { solved: boolean } per group in current image
+
+// ── Load a set from the sidebar ──
+function loadHomework(idx) {
+  if (idx < 0 || idx >= HOMEWORKS.length) return;
+  currentHW  = idx;
+  currentImg = 0;
+  stars      = 0;
+  document.getElementById('star-count').textContent = '0';
+  saveProgress('lesson6', idx);
+  renderSidebar(HOMEWORKS, currentHW, loadHomework);
+  buildScene();
+  updateNav();
+}
+
+// ── Render scene image + group panel ──
+function buildScene() {
+  const hw    = HOMEWORKS[currentHW];
+  const scene = hw.images[currentImg];
+
+  document.getElementById('scene-img').src = scene.mainImage;
+
+  const panel = document.getElementById('group-panel');
+  panel.innerHTML = '';
+  groupStates = scene.groups.map(() => ({ solved: false }));
+
+  const groups = scene.groups;
+  groups.forEach((group, i) => {
+    const item = document.createElement('div');
+    item.className = 'group-item';
+    item.id = 'group-' + i;
+
+    const img = document.createElement('img');
+    img.src       = group.image;
+    img.alt       = 'Object ' + (i + 1);
+    img.className = 'group-img';
+
+    const input = document.createElement('input');
+    input.type        = 'number';
+    input.inputMode   = 'numeric';
+    input.min         = '0';
+    input.max         = '99';
+    input.placeholder = '?';
+    input.className   = 'count-input';
+    input.id          = 'input-' + i;
+
+    // Block non-digit keys (letters, symbols)
+    input.addEventListener('keypress', e => {
+      if (!/[0-9]/.test(e.key)) e.preventDefault();
+    });
+    // Check on Enter
+    input.addEventListener('keydown', e => {
+      if (e.key === 'Enter') checkAnswers();
+    });
+
+    item.appendChild(img);
+    item.appendChild(input);
+    panel.appendChild(item);
+  });
+}
+
+// ── Validate filled inputs ──
+function checkAnswers() {
+  const groups = HOMEWORKS[currentHW].images[currentImg].groups;
+  let newlySolved = 0;
+
+  groups.forEach((group, i) => {
+    if (groupStates[i].solved) return; // already correct
+
+    const input = document.getElementById('input-' + i);
+    const item  = document.getElementById('group-' + i);
+
+    if (input.value === '') return; // skip empty
+
+    const val = parseInt(input.value, 10);
+
+    if (val === group.answer) {
+      // Correct ✅
+      groupStates[i].solved = true;
+      newlySolved++;
+      item.classList.remove('wrong');
+      item.classList.add('correct');
+      input.disabled = true;
+      SFX.correct();
+      burstStars(item);
+      floatFeedback(item, '⭐');
+    } else {
+      // Wrong ❌ — shake + flash, then clear
+      item.classList.remove('wrong');
+      void item.offsetWidth;
+      item.classList.add('wrong');
+      input.classList.remove('flashing');
+      void input.offsetWidth;
+      input.classList.add('flashing');
+      SFX.wrong();
+      floatFeedback(item, '❌');
+      setTimeout(() => {
+        item.classList.remove('wrong');
+        input.classList.remove('flashing');
+        input.value = '';
+        input.focus();
+      }, 600);
+    }
+  });
+
+  stars += newlySolved;
+  document.getElementById('star-count').textContent = stars;
+
+  if (groupStates.every(s => s.solved)) {
+    setTimeout(showFireworks, 500);
+  }
+}
+
+// ── Fireworks ──
+function showFireworks() {
+  SFX.celebrate();
+  const overlay = document.getElementById('fireworks-overlay');
+  overlay.classList.add('show');
+  spawnFireworks();
+  // Auto-hide after animation ends
+  setTimeout(() => {
+    overlay.classList.remove('show');
+    overlay.innerHTML = '';
+  }, 2500);
+}
+
+// ── Navigation (Prev/Next moves through images within the current set) ──
+function goTo(idx) {
+  const total = HOMEWORKS[currentHW].images.length;
+  if (idx < 0 || idx >= total) return;
+  SFX.click();
+  currentImg = idx;
+  buildScene();
+  updateNav();
+}
+
+function updateNav() {
+  const total = HOMEWORKS[currentHW].images.length;
+  document.getElementById('btn-prev').disabled    = currentImg === 0;
+  document.getElementById('btn-next').disabled    = currentImg === total - 1;
+  document.getElementById('hw-counter').textContent =
+    `${currentImg + 1} / ${total}`;
+}
+
+// ── Visual feedback helpers ──
+
+// Floating emoji that rises from the center of an element then fades
+function floatFeedback(el, emoji) {
+  const r  = el.getBoundingClientRect();
+  const el2 = document.createElement('span');
+  el2.className = 'float-emoji-feedback';
+  el2.textContent = emoji;
+  el2.style.left = (r.left + r.width  / 2 - 14) + 'px';
+  el2.style.top  = (r.top  + r.height / 2 - 14) + 'px';
+  document.body.appendChild(el2);
+  setTimeout(() => el2.remove(), 950);
+}
+
+// Mini star burst radiating from center of an element
+function burstStars(el) {
+  const stars  = ['⭐','🌟','✨','💫','🎉'];
+  const r      = el.getBoundingClientRect();
+  const cx     = r.left + r.width  / 2;
+  const cy     = r.top  + r.height / 2;
+  const count  = 6;
+  for (let i = 0; i < count; i++) {
+    const angle  = (360 / count) * i;
+    const rad    = angle * Math.PI / 180;
+    const dist   = 55 + Math.random() * 30;
+    const tx     = Math.round(Math.cos(rad) * dist);
+    const ty     = Math.round(Math.sin(rad) * dist);
+    const s      = document.createElement('span');
+    s.className  = 'mini-star';
+    s.textContent = stars[i % stars.length];
+    s.style.left = (cx - 11) + 'px';
+    s.style.top  = (cy - 11) + 'px';
+    s.style.setProperty('--tx', `translate(${tx}px, ${ty}px)`);
+    s.style.animationDelay = (i * 40) + 'ms';
+    document.body.appendChild(s);
+    setTimeout(() => s.remove(), 900);
+  }
+}
+
+// ── Init ──
+HOMEWORKS = HOMEWORK_CONFIG;
+loadHomework(getProgress('lesson6'));
+</script>
+</body>
+</html>
