@@ -93,8 +93,25 @@
     .next-btn { display: none; }
     .next-btn.show { display: inline-flex; }
 
-    @media (max-width: 600px) { .item-box { width: 120px; height: 95px; } }
-    @media (max-width: 400px) { .item-box { width: 95px; height: 75px; } }
+    /* Color-word right column items */
+    .color-word-item {
+      border-radius: 16px !important;
+      background: rgba(255,255,255,0.35);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+    }
+    .color-word-item span {
+      font-size: 1.6rem;
+      font-weight: bold;
+      text-shadow: 0 1px 3px rgba(0,0,0,0.15);
+      font-family: 'Comic Sans MS', 'Chalkboard SE', 'Arial Rounded MT Bold', cursive;
+      text-transform: capitalize;
+      pointer-events: none;
+      user-select: none;
+    }
+
+    @media (max-width: 600px) { .item-box { width: 120px; height: 95px; } .color-word-item span { font-size: 1.2rem; } }
+    @media (max-width: 400px) { .item-box { width: 95px; height: 75px; } .color-word-item span { font-size: 1rem; } }
   </style>
 </head>
 <body class="lesson-body">
@@ -189,15 +206,25 @@ function showRound() {
   dragFromId   = null;
 
   const hw = HOMEWORKS[currentHW];
-  pairs       = shuffle(hw.pairs.map(name => ({ id: name, name })));
+  const isColorWord = hw.type === 'color-word';
+
+  // Normalise pairs: support both string IDs and {id, color, colorHex} objects
+  pairs = shuffle(hw.pairs.map(p =>
+    typeof p === 'string' ? { id: p, name: p } : { id: p.id, name: p.id, img: p.img, color: p.color, colorHex: p.colorHex }
+  ));
   shadowOrder = shuffle(pairs.map(p => p.id));
+
+  // Dynamic instruction
+  document.querySelector('.instruction').textContent = isColorWord
+    ? 'Match the picture to its color word! 🎨'
+    : 'Drag a line from the picture to its shadow! 🖊️';
 
   document.getElementById('round-label').textContent =
     `Round ${currentRound + 1} of ${TOTAL_ROUNDS}`;
   document.getElementById('next-btn').classList.remove('show');
   clearFeedback();
 
-  // Left column
+  // Left column — always images
   const colObj = document.getElementById('col-objects');
   colObj.innerHTML = '';
   pairs.forEach(p => {
@@ -206,27 +233,37 @@ function showRound() {
     box.id = 'obj-' + p.id;
     box.dataset.pairId = p.id;
     const img = document.createElement('img');
-    img.src = imgPath(hw, p.name, false);
+    img.src = isColorWord ? `${hw.folder}/${p.img}` : imgPath(hw, p.name, false);
     img.alt = p.name;
     img.draggable = false;
     box.appendChild(img);
     colObj.appendChild(box);
   });
 
-  // Right column (shadows)
+  // Right column — shadow images OR color word labels
   const colSh = document.getElementById('col-shadows');
   colSh.innerHTML = '';
   shadowOrder.forEach(id => {
     const p = pairs.find(x => x.id === id);
     const box = document.createElement('div');
-    box.className = 'item-box shadow-item';
     box.id = 'shd-' + id;
     box.dataset.pairId = id;
-    const img = document.createElement('img');
-    img.src = imgPath(hw, p.name, true);
-    img.alt = p.name + ' shadow';
-    img.draggable = false;
-    box.appendChild(img);
+
+    if (isColorWord) {
+      box.className = 'item-box shadow-item color-word-item';
+      const span = document.createElement('span');
+      span.textContent = p.color || id;
+      span.style.color = p.colorHex || '#333';
+      box.appendChild(span);
+    } else {
+      box.className = 'item-box shadow-item';
+      const img = document.createElement('img');
+      img.src = imgPath(hw, p.name, true);
+      img.alt = p.name + ' shadow';
+      img.draggable = false;
+      box.appendChild(img);
+    }
+
     colSh.appendChild(box);
   });
 
