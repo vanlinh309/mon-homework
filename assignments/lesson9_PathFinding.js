@@ -44,6 +44,15 @@ window.HOMEWORK_CONFIG = [
           { moves: ['DOWN', 'DOWN', 'RIGHT', 'RIGHT'],   isCorrect: true }, // out-of-bounds
           { moves: ['LEFT', 'DOWN', 'LEFT', 'UP'],  isCorrect: false }, // lands [1,0]
         ]
+      },
+      {
+        // bunny bottom-right → carrot top-middle
+        bunny: [0, 0], carrot: [2, 2],
+        options: [
+          { moves: ['UP', 'LEFT', 'UP', 'RIGHT'],    isCorrect: true  }, // lands [0,1] ✓
+          { moves: ['DOWN', 'DOWN', 'RIGHT', 'RIGHT'],   isCorrect: true }, // out-of-bounds
+          { moves: ['LEFT', 'DOWN', 'LEFT', 'UP'],  isCorrect: false }, // lands [1,0]
+        ]
       }
     ]
   }
