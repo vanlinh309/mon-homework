@@ -53,10 +53,10 @@
     .dot.done    { background: var(--color-green); }
     .dot.current { background: var(--color-orange); transform: scale(1.25); }
 
-    /* ── 3×3 Grid — spreadsheet / chessboard style ── */
+    /* ── Grid — spreadsheet / chessboard style, size driven by --grid-cols ── */
     .grid {
       display: grid;
-      grid-template-columns: repeat(3, 1fr);
+      grid-template-columns: repeat(var(--grid-cols, 3), 1fr);
       gap: 0;
       background: #fff;
       border-radius: 16px;
@@ -67,23 +67,23 @@
     }
 
     .cell {
-      width: calc(min(360px, 90vw) / 3);
-      height: calc(min(360px, 90vw) / 3);
+      width: calc(min(360px, 90vw) / var(--grid-cols, 3));
+      height: calc(min(360px, 90vw) / var(--grid-cols, 3));
       background: #FFFDF5;
       border-right: 2px solid #b0a090;
       border-bottom: 2px solid #b0a090;
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 3.2rem;
+      font-size: var(--cell-emoji-size, 3.2rem);
       line-height: 1;
       transition: background 0.2s, transform 0.15s;
       position: relative;
     }
 
-    /* Remove right border on last column, bottom border on last row */
-    .cell:nth-child(3n)   { border-right: none; }
-    .cell:nth-child(n+7)  { border-bottom: none; }
+    /* Last column / last row borders removed via JS-applied classes */
+    .cell.no-right  { border-right: none; }
+    .cell.no-bottom { border-bottom: none; }
 
 
     .cell.active-bunny {
@@ -172,6 +172,44 @@
 
     .dpad-empty { width: 42px; height: 42px; }
 
+    .dpad-btn:disabled {
+      opacity: 0.35;
+      cursor: not-allowed;
+      transform: none !important;
+      box-shadow: none !important;
+    }
+
+    /* ── Move trail ── */
+    .move-trail {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      align-items: center;
+      min-height: 38px;
+      width: min(360px, 90vw);
+    }
+
+    .move-chip {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 36px;
+      height: 36px;
+      border-radius: 8px;
+      background: var(--color-purple);
+      color: #fff;
+      font-size: 1.15rem;
+      font-weight: bold;
+      box-shadow: 0 2px 5px rgba(168,85,247,0.35);
+      animation: bounce-in 0.25s ease both;
+    }
+
+    .move-trail-empty {
+      font-size: 0.85rem;
+      color: #aaa;
+      font-style: italic;
+    }
+
     /* ── Round nav buttons ── */
     .round-nav {
       display: flex;
@@ -211,7 +249,7 @@
       color: #888;
       font-weight: bold;
       text-align: center;
-      width: min(360px, 90vw);
+      width: var(--options-width, min(360px, 90vw));
     }
 
     .options {
@@ -428,6 +466,7 @@
           <div class="progress" id="progress"></div>
           <button class="btn-nav btn-next-nav" id="btn-nav-next" onclick="nextRound()">▶</button>
         </div>
+        <div class="move-trail" id="move-trail"><span class="move-trail-empty">Use ↑ ↓ ← → to explore!</span></div>
         <div class="grid-with-dpad">
           <div class="grid" id="grid"></div>
           <div class="dpad">
@@ -477,6 +516,8 @@ let locked         = false;
 let bunnyPos       = [0, 0]; // original start position for the round
 let liveBunnyPos   = [0, 0]; // current displayed position (D-pad moves this)
 let carrotPos      = [2, 2];
+let dpadMoves      = [];     // moves recorded via D-pad
+let gridSize       = 3;      // active grid dimension (3, 4, or 5)
 
 function hw()    { return HOMEWORK_CONFIG[currentHWIdx]; }
 function round() { return hw().rounds[currentRoundIdx]; }
@@ -506,9 +547,11 @@ function loadRound() {
   document.getElementById('feedback').className = 'feedback';
 
   const r = round();
+  gridSize     = r.gridSize || hw().gridSize || 3;
   bunnyPos     = [...r.bunny];
   liveBunnyPos = [...r.bunny];
   carrotPos    = [...r.carrot];
+  dpadMoves    = [];
 
   const options = round().options;
 
@@ -516,6 +559,8 @@ function loadRound() {
   renderProgress();
   renderOptions(options);
   updateNavButtons();
+  renderMoveTrail();
+  updateDpadButtons();
 }
 
 // ============================================================
@@ -523,11 +568,17 @@ function loadRound() {
 // ============================================================
 function renderGrid() {
   const grid = document.getElementById('grid');
+  // Emoji size: shrink for larger grids
+  const emojiFontSize = gridSize <= 3 ? 3.2 : gridSize === 4 ? 2.4 : 1.8;
+  grid.style.setProperty('--grid-cols', gridSize);
+  grid.style.setProperty('--cell-emoji-size', emojiFontSize + 'rem');
   grid.innerHTML = '';
-  for (let r = 0; r < 3; r++) {
-    for (let c = 0; c < 3; c++) {
+  for (let r = 0; r < gridSize; r++) {
+    for (let c = 0; c < gridSize; c++) {
       const cell = document.createElement('div');
       cell.className = 'cell';
+      if (c === gridSize - 1) cell.classList.add('no-right');
+      if (r === gridSize - 1) cell.classList.add('no-bottom');
       cell.id = `cell-${r}-${c}`;
       if (r === liveBunnyPos[0] && c === liveBunnyPos[1]) cell.textContent = '🐰';
       if (r === carrotPos[0]   && c === carrotPos[1])    cell.textContent = '🥕';
@@ -608,7 +659,7 @@ async function animateAndCheck(idx, opt) {
     const nr = ar + dr;
     const nc = ac + dc;
 
-    if (nr < 0 || nr > 2 || nc < 0 || nc > 2) {
+    if (nr < 0 || nr >= gridSize || nc < 0 || nc >= gridSize) {
       // Out of bounds
       const cell = cellEl(ar, ac);
       cell.classList.add('flash-error');
@@ -673,13 +724,37 @@ function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
 // ============================================================
 //  D-pad controls
 // ============================================================
+function maxDpadSteps() {
+  return Math.max(...round().options.map(o => o.moves.length));
+}
+
+function renderMoveTrail() {
+  const el = document.getElementById('move-trail');
+  if (dpadMoves.length === 0) {
+    el.innerHTML = '<span class="move-trail-empty">Use ↑ ↓ ← → to explore!</span>';
+  } else {
+    const arrowMap = { UP: '↑', DOWN: '↓', LEFT: '←', RIGHT: '→' };
+    el.innerHTML = dpadMoves.map(d => `<span class="move-chip">${arrowMap[d]}</span>`).join('');
+  }
+}
+
+function updateDpadButtons() {
+  const maxed = dpadMoves.length >= maxDpadSteps();
+  ['UP','DOWN','LEFT','RIGHT'].forEach(dir => {
+    const btn = document.querySelector(`.dpad-btn[onclick="moveBunnyDpad('${dir}')"]`);
+    if (btn) btn.disabled = maxed;
+  });
+}
+
 function moveBunnyDpad(dir) {
   if (locked) return;
+  if (dpadMoves.length >= maxDpadSteps()) return;
+
   const { dr, dc } = DIRS[dir];
   const nr = liveBunnyPos[0] + dr;
   const nc = liveBunnyPos[1] + dc;
 
-  if (nr < 0 || nr > 2 || nc < 0 || nc > 2) {
+  if (nr < 0 || nr >= gridSize || nc < 0 || nc >= gridSize) {
     // Out of bounds — danger shake on current cell
     const cell = cellEl(liveBunnyPos[0], liveBunnyPos[1]);
     cell.classList.remove('cell-danger'); // reset if already animating
@@ -699,12 +774,19 @@ function moveBunnyDpad(dir) {
   newCell.classList.add('active-bunny');
   SFX.pop();
   setTimeout(() => newCell.classList.remove('active-bunny'), 300);
+
+  dpadMoves.push(dir);
+  renderMoveTrail();
+  updateDpadButtons();
 }
 
 function resetBunnyDpad() {
   if (locked) return;
   liveBunnyPos = [...bunnyPos];
+  dpadMoves = [];
   renderGrid();
+  renderMoveTrail();
+  updateDpadButtons();
   SFX.click();
 }
 
@@ -718,9 +800,6 @@ function nextRound() {
 }
 
 function restartGame() {
-  currentRoundIdx = 0;
-  stars = 0;
-  document.getElementById('star-count').textContent = 0;
   loadRound();
 }
 

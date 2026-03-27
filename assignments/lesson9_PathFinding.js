@@ -1,6 +1,13 @@
 // Help Bunny Find the Carrot — Homework Assignments
-// Each round has pre-defined bunny/carrot positions AND the 3 answer options.
-// Grid is 0-indexed: row 0 = top, row 2 = bottom; col 0 = left, col 2 = right.
+//
+// Set-level fields:
+//   label    — sidebar label
+//   gridSize — (optional) grid size: 3 = 3×3, 4 = 4×4, 5 = 5×5. Defaults to 3.
+//
+// Round fields:
+//   bunny / carrot — [row, col], 0-indexed from top-left
+//   options        — array of { moves: [...], isCorrect: bool }
+//
 // Directions: UP (row-1), DOWN (row+1), LEFT (col-1), RIGHT (col+1)
 // isCorrect: true  → path lands exactly on the carrot
 // isCorrect: false → path goes out-of-bounds OR lands on the wrong cell
@@ -8,52 +15,53 @@
 window.HOMEWORK_CONFIG = [
   {
     label: "🐰 Set 1",
+    gridSize: 3,
     rounds: [
       {
-        // bunny bottom-left → carrot top-right
+        // bunny mid-left → carrot top-right  (3×3)
         bunny: [1, 0], carrot: [0, 2],
         options: [
           { moves: ['RIGHT', 'UP', 'RIGHT'],  isCorrect: true },
-          { moves: ['DOWN', 'RIGHT', 'RIGHT'], isCorrect: false  }, 
-          { moves: ['UP',  'RIGHT', 'UP',],  isCorrect: false },
+          { moves: ['DOWN', 'RIGHT', 'RIGHT'], isCorrect: false },
+          { moves: ['UP',  'RIGHT', 'UP'],     isCorrect: false },
         ]
       },
       {
-        // bunny top-left → carrot bottom-right
+        // bunny top-mid → carrot bottom-right  (3×3)
         bunny: [0, 1], carrot: [2, 2],
         options: [
-          { moves: ['LEFT', 'DOWN', 'RIGHT'], isCorrect: false  }, // lands [2,2] ✓
-          { moves: ['RIGHT', 'DOWN', 'RIGHT'],  isCorrect: false }, // out-of-bounds
-          { moves: ['DOWN', 'DOWN', 'RIGHT'], isCorrect: true }, // lands [1,1]
+          { moves: ['LEFT', 'DOWN', 'RIGHT'],  isCorrect: false },
+          { moves: ['RIGHT', 'DOWN', 'RIGHT'], isCorrect: false },
+          { moves: ['DOWN', 'DOWN', 'RIGHT'],  isCorrect: true },
         ]
       },
       {
-        // bunny bottom-right → carrot top-middle
+        // bunny top-right → carrot mid-left  (3×3)
         bunny: [0, 2], carrot: [1, 0],
         options: [
-          { moves: ['UP', 'LEFT', 'UP'],    isCorrect: true  }, // lands [0,1] ✓
-          { moves: ['LEFT', 'DOWN', 'LEFT'],   isCorrect: true }, // out-of-bounds
-          { moves: ['LEFT', 'LEFT', 'UP'],  isCorrect: false }, // lands [1,0]
+          { moves: ['DOWN', 'LEFT', 'LEFT'], isCorrect: true },
+          { moves: ['LEFT', 'DOWN', 'LEFT'], isCorrect: false },
+          { moves: ['LEFT', 'LEFT', 'DOWN'], isCorrect: false },
         ]
       },
       {
-        // bunny bottom-right → carrot top-middle
+        // bunny top-left → carrot bottom-right  (3×3, 4 steps)
         bunny: [0, 0], carrot: [2, 2],
         options: [
-          { moves: ['UP', 'LEFT', 'UP', 'RIGHT'],    isCorrect: true  }, // lands [0,1] ✓
-          { moves: ['DOWN', 'DOWN', 'RIGHT', 'RIGHT'],   isCorrect: true }, // out-of-bounds
-          { moves: ['LEFT', 'DOWN', 'LEFT', 'UP'],  isCorrect: false }, // lands [1,0]
+          { moves: ['DOWN', 'RIGHT', 'DOWN', 'RIGHT'], isCorrect: false },
+          { moves: ['RIGHT', 'RIGHT', 'DOWN', 'DOWN'], isCorrect: true },
+          { moves: ['DOWN', 'DOWN', 'RIGHT', 'UP'],    isCorrect: false },
         ]
       },
       {
-        // bunny bottom-right → carrot top-middle
-        bunny: [0, 0], carrot: [2, 2],
+        // bunny top-left → carrot bottom-right  (3×3, 4 steps)
+        bunny: [1, 1], carrot: [2, 0],
         options: [
-          { moves: ['UP', 'LEFT', 'UP', 'RIGHT'],    isCorrect: true  }, // lands [0,1] ✓
-          { moves: ['DOWN', 'DOWN', 'RIGHT', 'RIGHT'],   isCorrect: true }, // out-of-bounds
-          { moves: ['LEFT', 'DOWN', 'LEFT', 'UP'],  isCorrect: false }, // lands [1,0]
+          { moves: ['DOWN', 'RIGHT', 'DOWN', 'RIGHT'], isCorrect: false },
+          { moves: ['RIGHT', 'RIGHT', 'DOWN', 'DOWN'], isCorrect: false },
+          { moves: ['RIGHT', 'DOWN', 'LEFT', 'LEFT'],    isCorrect: true },
         ]
       }
     ]
-  }
+  } 
 ];
