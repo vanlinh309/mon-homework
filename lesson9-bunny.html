@@ -17,6 +17,9 @@
   <style>
     body { background: linear-gradient(135deg, #FFFBE6 0%, #FFF0FB 100%); }
 
+    /* Prevent double-tap zoom on all interactive elements (iOS Safari ignores user-scalable=no) */
+    button, a, [onclick] { touch-action: manipulation; }
+
     main {
       max-width: 580px;
       margin: 0 auto;
@@ -99,6 +102,30 @@
       100% { background: inherit; }
     }
 
+    /* D-pad out-of-bounds: shake + danger pulse */
+    .cell.cell-danger {
+      animation: cell-danger-shake 0.55s ease;
+      z-index: 2;
+    }
+
+    @keyframes cell-danger-shake {
+      0%   { transform: translateX(0)    scale(1);    background: #FFFDF5;                        box-shadow: none; }
+      10%  { transform: translateX(-7px) scale(1.08); background: rgba(255,71,87,0.75) !important; box-shadow: 0 0 0 4px rgba(255,71,87,0.5); }
+      25%  { transform: translateX(7px)  scale(1.08); background: rgba(255,71,87,0.85) !important; box-shadow: 0 0 0 6px rgba(255,71,87,0.6); }
+      40%  { transform: translateX(-5px) scale(1.05); background: rgba(255,71,87,0.65) !important; box-shadow: 0 0 0 4px rgba(255,71,87,0.4); }
+      55%  { transform: translateX(4px)  scale(1.03); background: rgba(255,71,87,0.45) !important; box-shadow: 0 0 0 3px rgba(255,71,87,0.3); }
+      70%  { transform: translateX(-2px) scale(1.01); background: rgba(255,71,87,0.25) !important; box-shadow: none; }
+      100% { transform: translateX(0)    scale(1);    background: #FFFDF5;                        box-shadow: none; }
+    }
+
+    /* ── Outer column: centers options under the full grid+dpad width ── */
+    .game-column {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 16px;
+    }
+
     /* ── Grid + D-pad row ── */
     .grid-with-dpad {
       display: flex;
@@ -148,18 +175,18 @@
     /* ── Round nav buttons ── */
     .round-nav {
       display: flex;
-      gap: 10px;
+      gap: 8px;
       align-items: center;
-      justify-content: center;
+      justify-content: flex-start;
     }
 
     .btn-nav {
-      min-width: 110px;
-      min-height: 48px;
+      min-width: 84px;
+      min-height: 38px;
       font-family: inherit;
-      font-size: 1rem;
+      font-size: 0.85rem;
       font-weight: bold;
-      padding: 10px 18px;
+      padding: 7px 14px;
       border: none;
       border-radius: 50px;
       cursor: pointer;
@@ -302,12 +329,47 @@
       gap: 8px;
     }
 
+    .action-row {
+      display: flex;
+      gap: 12px;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+
     .btn-next.show {
       display: inline-flex;
       animation: bounce-in 0.4s ease both;
     }
 
     .btn-next:active { transform: scale(0.96); }
+
+    .btn-restart {
+      display: none;
+      min-width: 140px;
+      min-height: 62px;
+      font-family: inherit;
+      font-size: 1.25rem;
+      font-weight: bold;
+      padding: 14px 24px;
+      background: linear-gradient(135deg, #FF6B9D, var(--color-red));
+      color: #fff;
+      border: none;
+      border-radius: 50px;
+      cursor: pointer;
+      box-shadow: var(--shadow);
+      touch-action: manipulation;
+      transition: transform 0.15s;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+
+    .btn-restart.show {
+      display: inline-flex;
+      animation: bounce-in 0.4s ease 0.15s both;
+    }
+
+    .btn-restart:active { transform: scale(0.96); }
 
     /* ── Fireworks ── */
     #fireworks-overlay {
@@ -360,32 +422,35 @@
 
   <div class="lesson-scroll">
     <main>
-      <div class="round-nav">
-        <button class="btn-nav btn-prev" id="btn-prev" onclick="prevRound()">◀ Previous</button>
-        <div class="progress" id="progress"></div>
-        <button class="btn-nav btn-next-nav" id="btn-nav-next" onclick="nextRound()">Next ▶</button>
-      </div>
-
-      <div class="grid-with-dpad">
-        <div class="grid" id="grid"></div>
-        <div class="dpad">
-          <div class="dpad-empty"></div>
-          <button class="dpad-btn" onclick="moveBunnyDpad('UP')">↑</button>
-          <div class="dpad-empty"></div>
-          <button class="dpad-btn" onclick="moveBunnyDpad('LEFT')">←</button>
-          <button class="dpad-btn dpad-reset" onclick="resetBunnyDpad()">⟳</button>
-          <button class="dpad-btn" onclick="moveBunnyDpad('RIGHT')">→</button>
-          <div class="dpad-empty"></div>
-          <button class="dpad-btn" onclick="moveBunnyDpad('DOWN')">↓</button>
-          <div class="dpad-empty"></div>
+      <div class="game-column">
+        <div class="round-nav">
+          <button class="btn-nav btn-prev" id="btn-prev" onclick="prevRound()">◀</button>
+          <div class="progress" id="progress"></div>
+          <button class="btn-nav btn-next-nav" id="btn-nav-next" onclick="nextRound()">▶</button>
         </div>
+        <div class="grid-with-dpad">
+          <div class="grid" id="grid"></div>
+          <div class="dpad">
+            <div class="dpad-empty"></div>
+            <button class="dpad-btn" onclick="moveBunnyDpad('UP')">↑</button>
+            <div class="dpad-empty"></div>
+            <button class="dpad-btn" onclick="moveBunnyDpad('LEFT')">←</button>
+            <button class="dpad-btn dpad-reset" onclick="resetBunnyDpad()">⟳</button>
+            <button class="dpad-btn" onclick="moveBunnyDpad('RIGHT')">→</button>
+            <div class="dpad-empty"></div>
+            <button class="dpad-btn" onclick="moveBunnyDpad('DOWN')">↓</button>
+            <div class="dpad-empty"></div>
+          </div>
+        </div>
+        <div class="options" id="options"></div>
       </div>
-
-      <div class="options" id="options"></div>
 
       <div id="feedback" class="feedback"></div>
 
-      <button class="btn-next" id="btn-next" onclick="nextRound()">Next Round ➡️</button>
+      <div class="action-row" id="action-row">
+        <button class="btn-next" id="btn-next" onclick="nextRound()">Next Round ➡️</button>
+        <button class="btn-restart" id="btn-restart" onclick="restartGame()">🔄 Restart</button>
+      </div>
     </main>
   </div>
 </div>
@@ -437,6 +502,7 @@ function init() {
 function loadRound() {
   locked = false;
   document.getElementById('btn-next').classList.remove('show');
+  document.getElementById('btn-restart').classList.remove('show');
   document.getElementById('feedback').className = 'feedback';
 
   const r = round();
@@ -553,6 +619,7 @@ async function animateAndCheck(idx, opt) {
       cell.classList.remove('flash-error');
       card.classList.replace('selected', 'wrong');
       renderGrid();
+      document.getElementById('btn-restart').classList.add('show');
       locked = false;
       return;
     }
@@ -586,6 +653,7 @@ async function animateAndCheck(idx, opt) {
     const btnNext = document.getElementById('btn-next');
     btnNext.textContent = currentRoundIdx >= hw().rounds.length - 1 ? '🏆 All Done!' : 'Next Round ➡️';
     btnNext.classList.add('show');
+    document.getElementById('btn-restart').classList.add('show');
   } else {
     // ❌ Wrong cell
     SFX.wrong();
@@ -595,6 +663,7 @@ async function animateAndCheck(idx, opt) {
     await sleep(1300);
     cellEl(ar, ac).classList.remove('flash-error');
     renderGrid();
+    document.getElementById('btn-restart').classList.add('show');
     locked = false;
   }
 }
@@ -611,11 +680,13 @@ function moveBunnyDpad(dir) {
   const nc = liveBunnyPos[1] + dc;
 
   if (nr < 0 || nr > 2 || nc < 0 || nc > 2) {
-    // Out of bounds — flash current cell
+    // Out of bounds — danger shake on current cell
     const cell = cellEl(liveBunnyPos[0], liveBunnyPos[1]);
-    cell.classList.add('flash-error');
+    cell.classList.remove('cell-danger'); // reset if already animating
+    void cell.offsetWidth;               // force reflow to restart animation
+    cell.classList.add('cell-danger');
     SFX.wrong();
-    setTimeout(() => cell.classList.remove('flash-error'), 500);
+    setTimeout(() => cell.classList.remove('cell-danger'), 600);
     return;
   }
 
@@ -643,6 +714,13 @@ function resetBunnyDpad() {
 function nextRound() {
   const h = hw();
   currentRoundIdx = (currentRoundIdx + 1) % h.rounds.length;
+  loadRound();
+}
+
+function restartGame() {
+  currentRoundIdx = 0;
+  stars = 0;
+  document.getElementById('star-count').textContent = 0;
   loadRound();
 }
 
