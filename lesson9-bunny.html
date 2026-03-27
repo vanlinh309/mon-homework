@@ -99,6 +99,52 @@
       100% { background: inherit; }
     }
 
+    /* ── Grid + D-pad row ── */
+    .grid-with-dpad {
+      display: flex;
+      flex-direction: row;
+      align-items: center;
+      gap: 14px;
+    }
+
+    /* ── D-pad ── */
+    .dpad {
+      display: grid;
+      grid-template-columns: repeat(3, 42px);
+      grid-template-rows: repeat(3, 42px);
+      gap: 5px;
+      flex-shrink: 0;
+    }
+
+    .dpad-btn {
+      width: 42px;
+      height: 42px;
+      border-radius: 10px;
+      background: var(--color-purple);
+      color: #fff;
+      font-size: 1.25rem;
+      font-family: inherit;
+      border: none;
+      cursor: pointer;
+      touch-action: manipulation;
+      user-select: none;
+      box-shadow: 0 3px 7px rgba(168,85,247,0.4);
+      transition: transform 0.1s, box-shadow 0.1s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .dpad-btn:active { transform: scale(0.88); box-shadow: 0 1px 3px rgba(168,85,247,0.3); }
+
+    .dpad-reset {
+      background: var(--color-orange);
+      box-shadow: 0 3px 7px rgba(255,127,80,0.4);
+      font-size: 1rem;
+    }
+
+    .dpad-empty { width: 42px; height: 42px; }
+
     /* ── Round nav buttons ── */
     .round-nav {
       display: flex;
@@ -145,7 +191,6 @@
       display: flex;
       flex-direction: column;
       gap: 10px;
-      width: min(360px, 90vw);
     }
 
     .option-card {
@@ -321,7 +366,21 @@
         <button class="btn-nav btn-next-nav" id="btn-nav-next" onclick="nextRound()">Next ▶</button>
       </div>
 
-      <div class="grid" id="grid"></div>      
+      <div class="grid-with-dpad">
+        <div class="grid" id="grid"></div>
+        <div class="dpad">
+          <div class="dpad-empty"></div>
+          <button class="dpad-btn" onclick="moveBunnyDpad('UP')">↑</button>
+          <div class="dpad-empty"></div>
+          <button class="dpad-btn" onclick="moveBunnyDpad('LEFT')">←</button>
+          <button class="dpad-btn dpad-reset" onclick="resetBunnyDpad()">⟳</button>
+          <button class="dpad-btn" onclick="moveBunnyDpad('RIGHT')">→</button>
+          <div class="dpad-empty"></div>
+          <button class="dpad-btn" onclick="moveBunnyDpad('DOWN')">↓</button>
+          <div class="dpad-empty"></div>
+        </div>
+      </div>
+
       <div class="options" id="options"></div>
 
       <div id="feedback" class="feedback"></div>
@@ -350,7 +409,8 @@ let currentHWIdx   = 0;
 let currentRoundIdx = 0;
 let stars          = 0;
 let locked         = false;
-let bunnyPos       = [0, 0];
+let bunnyPos       = [0, 0]; // original start position for the round
+let liveBunnyPos   = [0, 0]; // current displayed position (D-pad moves this)
 let carrotPos      = [2, 2];
 
 function hw()    { return HOMEWORK_CONFIG[currentHWIdx]; }
@@ -380,8 +440,9 @@ function loadRound() {
   document.getElementById('feedback').className = 'feedback';
 
   const r = round();
-  bunnyPos  = [...r.bunny];
-  carrotPos = [...r.carrot];
+  bunnyPos     = [...r.bunny];
+  liveBunnyPos = [...r.bunny];
+  carrotPos    = [...r.carrot];
 
   const options = round().options;
 
@@ -402,8 +463,8 @@ function renderGrid() {
       const cell = document.createElement('div');
       cell.className = 'cell';
       cell.id = `cell-${r}-${c}`;
-      if (r === bunnyPos[0]  && c === bunnyPos[1])  cell.textContent = '🐰';
-      if (r === carrotPos[0] && c === carrotPos[1]) cell.textContent = '🥕';
+      if (r === liveBunnyPos[0] && c === liveBunnyPos[1]) cell.textContent = '🐰';
+      if (r === carrotPos[0]   && c === carrotPos[1])    cell.textContent = '🥕';
       grid.appendChild(cell);
     }
   }
@@ -466,6 +527,10 @@ function renderOptions(options) {
 // ============================================================
 async function animateAndCheck(idx, opt) {
   locked = true;
+  // Always animate from the original start position
+  liveBunnyPos = [...bunnyPos];
+  renderGrid();
+
   const card = document.getElementById(`opt-${idx}`);
   card.classList.add('selected', 'disabled');
 
@@ -535,6 +600,42 @@ async function animateAndCheck(idx, opt) {
 }
 
 function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
+
+// ============================================================
+//  D-pad controls
+// ============================================================
+function moveBunnyDpad(dir) {
+  if (locked) return;
+  const { dr, dc } = DIRS[dir];
+  const nr = liveBunnyPos[0] + dr;
+  const nc = liveBunnyPos[1] + dc;
+
+  if (nr < 0 || nr > 2 || nc < 0 || nc > 2) {
+    // Out of bounds — flash current cell
+    const cell = cellEl(liveBunnyPos[0], liveBunnyPos[1]);
+    cell.classList.add('flash-error');
+    SFX.wrong();
+    setTimeout(() => cell.classList.remove('flash-error'), 500);
+    return;
+  }
+
+  // Vacate current cell
+  setCellContent(liveBunnyPos[0], liveBunnyPos[1]);
+  liveBunnyPos = [nr, nc];
+
+  const newCell = cellEl(nr, nc);
+  newCell.textContent = '🐰';
+  newCell.classList.add('active-bunny');
+  SFX.pop();
+  setTimeout(() => newCell.classList.remove('active-bunny'), 300);
+}
+
+function resetBunnyDpad() {
+  if (locked) return;
+  liveBunnyPos = [...bunnyPos];
+  renderGrid();
+  SFX.click();
+}
 
 // ============================================================
 //  Round navigation
