@@ -1,0 +1,34 @@
+Create an interactive kids' educational game with the following specifications:
+Core Concept
+A concentration and imagination game where children guide a bunny to a carrot on a 3×3 grid by selecting the correct sequence of directional moves.
+Grid & Positions
+
+Display a 3×3 grid (9 square cells), with rows and columns numbered 1–3
+Randomly place the bunny and carrot at different cells each round (e.g., bunny at [2,1], carrot at [1,3])
+The bunny and carrot should be represented by cute emoji or illustrated icons (🐰 and 🥕)
+
+Answer Options
+
+Generate 3 multiple-choice answers, each being a sequence of directional arrows (LEFT, RIGHT, UP, DOWN)
+Exactly 1 answer is correct (leads bunny to the carrot cell)
+The other 2 answers are plausible distractors (wrong paths — may go out of bounds or land on wrong cell)
+Display answers as clickable option cards
+
+Animation & Feedback
+
+When a child selects an answer, the bunny animates step-by-step through each direction in the sequence
+If the path goes out of bounds: play a sound (buzzer/error), flash the current cell red/danger, and show a "Oops! Try again!" message
+If the path lands on the wrong cell: similar error feedback
+If the path reaches the carrot: play a happy sound, show a celebration animation (confetti/stars), and display "Great job! 🎉"
+
+Game Flow
+
+After each round (win or lose), offer a "Next Round" button that loads new game
+The game structure and configuration will be store in the js (json structure) file
+
+Design
+
+Bright, friendly, child-appropriate visual style
+Large touch-friendly buttons suitable for young children
+Smooth step-by-step movement animation so kids can follow the bunny's path
+
