@@ -26,11 +26,11 @@ window.HOMEWORK_CONFIG = [
     type:   "color-word",
     folder: "assets/lesson1/Colors_Set1",
     pairs: [
-      { id: "purple", img: "purple.jpg", color: "purple", colorHex: "#A855F7" },
-      { id: "red",    img: "red.png",    color: "red",    colorHex: "#FF4757" },
-      { id: "yellow", img: "banana.jpg", color: "yellow", colorHex: "#FFD700" },
-      { id: "blue",   img: "blue.png",   color: "blue",   colorHex: "#2F86EB" },
-      { id: "green",  img: "green.jpg",  color: "green",  colorHex: "#2ED573" }
+      { id: "purple", img: "purple.jpg", color: "grape", colorHex: "#000000" },
+      { id: "red",    img: "red.png",    color: "strawberry",    colorHex: "#000000" },
+      { id: "yellow", img: "banana.jpg", color: "banana", colorHex: "#000000" },
+      { id: "blue",   img: "blue.png",   color: "blueberry",   colorHex: "#000000" },
+      { id: "green",  img: "green.jpg",  color: "lime",  colorHex: "#000000" }
     ]
   },
   {
@@ -38,11 +38,11 @@ window.HOMEWORK_CONFIG = [
     type:   "color-word",
     folder: "assets/lesson1/Colors_Set2",
     pairs: [
-      { id: "pink",   img: "pink.png",   color: "pink",   colorHex: "#FF69B4" },
-      { id: "orange", img: "orange.png", color: "orange", colorHex: "#FF7F50" },
-      { id: "blue",   img: "blue.jpg",   color: "blue",   colorHex: "#2F86EB" },
-      { id: "green",  img: "green.png",  color: "green",  colorHex: "#2ED573" },
-      { id: "yellow", img: "yellow.png", color: "yellow", colorHex: "#FFD700" }
+      { id: "pink",   img: "pink.png",   color: "peach",   colorHex: "#000000" },
+      { id: "orange", img: "orange.png", color: "orange", colorHex: "#000000" },
+      { id: "blue",   img: "blue.jpg",   color: "blueberry",   colorHex: "#000000" },
+      { id: "green",  img: "green.png",  color: "apple",  colorHex: "#000000" },
+      { id: "yellow", img: "yellow.png", color: "lemon", colorHex: "#000000" }
     ]
   },
   {
@@ -50,11 +50,11 @@ window.HOMEWORK_CONFIG = [
     type:   "color-word",
     folder: "assets/lesson1/Colors_Set3",
     pairs: [
-      { id: "pink",   img: "pink.png",   color: "pink",   colorHex: "#FF69B4" },
-      { id: "orange", img: "orange.jpg", color: "orange", colorHex: "#FF7F50" },
-      { id: "blue",   img: "blue.png",   color: "blue",   colorHex: "#2F86EB" },
-      { id: "green",  img: "green.png",  color: "green",  colorHex: "#2ED573" },
-      { id: "yellow", img: "yellow.png", color: "yellow", colorHex: "#FFD700" }
+      { id: "pink",   img: "pink.png",   color: "pig",   colorHex: "#000000" },
+      { id: "orange", img: "orange.jpg", color: "fox", colorHex: "#000000" },
+      { id: "blue",   img: "blue.png",   color: "bird",   colorHex: "#000000" },
+      { id: "green",  img: "green.png",  color: "frog",  colorHex: "#000000" },
+      { id: "yellow", img: "yellow.png", color: "bee", colorHex: "#000000" }
     ]
   },
   {
@@ -62,11 +62,11 @@ window.HOMEWORK_CONFIG = [
     type:   "color-word",
     folder: "assets/lesson1/Colors_Set4",
     pairs: [
-      { id: "black",  img: "black.png",  color: "black",  colorHex: "#2d2d2d" },
-      { id: "red",    img: "red.png",    color: "red",    colorHex: "#FF4757" },
-      { id: "blue",   img: "blue.png",   color: "blue",   colorHex: "#2F86EB" },
-      { id: "green",  img: "green.png",  color: "green",  colorHex: "#2ED573" },
-      { id: "orange", img: "orange.png", color: "orange", colorHex: "#FF7F50" }
+      { id: "black",  img: "black.png",  color: "bird",  colorHex: "#000000" },
+      { id: "red",    img: "red.png",    color: "ladybug",    colorHex: "#000000" },
+      { id: "blue",   img: "blue.png",   color: "dolphin",   colorHex: "#000000" },
+      { id: "green",  img: "green.png",  color: "butterfly",  colorHex: "#000000" },
+      { id: "orange", img: "orange.png", color: "fish", colorHex: "#000000" }
     ]
   }
 ];
